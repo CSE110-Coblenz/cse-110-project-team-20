@@ -7,9 +7,10 @@ Minute taker:
 Sprint 1 
 Agenda
 Assign scrum master, front-end, and back-end developers
+Assign user stories to developers
 
 
-Tasks
+Tasks + Role
 Anurag
 
 Emily
