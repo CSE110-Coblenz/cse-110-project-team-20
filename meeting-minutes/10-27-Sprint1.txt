@@ -1,0 +1,23 @@
+Date: 10/27/2025
+Start time: 4:00pm
+End time: 
+Location: Online
+Attendees:
+Minute taker: 
+Sprint 1 
+Agenda
+Assign scrum master, front-end, and back-end developers
+
+
+Tasks
+Anurag
+
+Emily
+
+Akshar
+
+Keanu
+
+Kinish
+
+Joseph
