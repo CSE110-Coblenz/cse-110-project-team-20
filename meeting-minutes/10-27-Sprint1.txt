@@ -2,8 +2,8 @@ Date: 10/27/2025
 Start time: 4:00pm
 End time: 
 Location: Online
-Attendees:
-Minute taker: 
+Attendees: Akshar, Kinish, Emily, Joseph, Anurag
+Minute taker: Anurag
 Sprint 1 
 Agenda
 Assign scrum master, front-end, and back-end developers
@@ -12,13 +12,28 @@ Assign user stories to developers
 
 Tasks + Role
 Anurag
+Role: Backend
+US: 4
 
 Emily
+Role: Frontend
+US: 3
 
 Akshar
+Role: Frontend
+US: 2
 
 Keanu
+Role: 
+US: 2/3
 
 Kinish
+Role: Backend
+US: 2/3 
 
 Joseph
+Role: Frontend
+US: 4
+
+Discussion
+- make class structure more concrete through the user stories
