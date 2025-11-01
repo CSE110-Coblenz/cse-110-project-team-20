@@ -1,0 +1,42 @@
+Date: 11/01/2025
+Location: Online
+Attendees: Kinish, Emily, Joseph, Anurag, Keanu
+Minute taker: Emily
+Sprint 1 
+Agenda
+Discuss more in detail class stucture
+
+Tasks + Role
+Anurag
+Role: Backend
+US: 4
+
+Emily
+Role: Frontend
+US: 1
+
+Akshar
+Role: Frontend
+US: 3
+
+Keanu
+Role: 
+US: 3
+
+Kinish
+Role: Backend
+US: 2
+
+Joseph
+Role: Frontend
+US: 4
+
+Discussion
+- make class structure more concrete through the user stories
+- use lab 3 advanced konva as reference
+- make starter code 
+- branch each user story
+- testing...
+- canva game design refer to 
+- in commit include what you used, i.e. use MVC for explain game decisions and such
+- US 3 at the ISS (fuel, refuel, password cracker minigame), US 4 at moon (quiz)
