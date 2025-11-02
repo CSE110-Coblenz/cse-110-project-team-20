@@ -1,0 +1,8 @@
+This follows your UML diagram perfectly.
+* **`Minigame.ts`:** An **abstract class** (the template).
+    * Defines methods all minigames must have, like `start(layer: Konva.Layer)` and `onComplete(callback: (success: boolean) => void)`.
+* **`PasswordCracker.ts`:** Extends `Minigame`. The specific puzzle game for the tutorial (US-3).
+* **`QuizMinigame.ts`:** Extends `Minigame`. The quiz game for the Moon (US-4).
+* **`AsteroidDestroyer.ts`:** (From your UML) You can build this later, and it will plug right in because it also extends `Minigame`.
+
+---
