@@ -1,0 +1,43 @@
+Date: 11/03/2025
+Location: Online
+Attendees: Kinish, Emily, Joseph, Anurag, Keanu
+Minute taker: Joseph
+Sprint 2
+Agenda
+backlog refinement, radjusting user story and talking about the new structure, game development
+
+
+Tasks + Role
+Anurag
+Role: Backend, helping with testing for user story 3
+US: 3
+working the the new structure design doc
+
+Emily
+Role: Frontend
+US: 1
+
+Akshar
+Role: Frontend, helpint out Kinish with user story 2 as well
+US: 3, 2
+
+Keanu
+Role: 
+US: 3
+working the the new structure design doc
+
+Kinish
+Role: Backend
+US: 2
+
+Joseph
+Role: Frontend, back end and testing for user story 3
+US: 3
+
+
+
+Discussion
+ideas: break down each user story into tasks and assign those tasks to each user
+Making sure the starter code is working well and trying to figure out what to do with into
+Merging our coding into main. We talked about how we are going to display the information and how interactive
+our game is going to be. We redistributed the User Story Tasks.
