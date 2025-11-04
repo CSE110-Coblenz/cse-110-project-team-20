@@ -1,0 +1,50 @@
+{
+  "iss-tutorial": [
+    {
+      "id": "welcome",
+      "character": "Neil",
+      "text": "Hello there, space explorer! I'm Neil deGrasse Tyson, and I'll be your guide on this journey. Welcome to the International Space Station tutorial!"
+    },
+    {
+      "id": "movement-intro",
+      "character": "Neil",
+      "text": "First, let's learn how to move your spacecraft. Use the arrow keys on your keyboard to navigate through space."
+    },
+    {
+      "id": "fuel-explanation",
+      "character": "Neil",
+      "text": "Your spacecraft runs on fuel! Every time you move, you consume fuel. Keep an eye on your fuel gauge in the top right corner."
+    },
+    {
+      "id": "fuel-warning",
+      "character": "Neil",
+      "text": "If you run out of fuel, you'll stop moving and drift in space. Always make sure you have enough fuel to reach your destination!"
+    },
+    {
+      "id": "iss-facts-1",
+      "character": "Neil",
+      "text": "The International Space Station, or ISS, orbits Earth at about 408 kilometers above the surface, traveling at 7.66 kilometers per second!"
+    },
+    {
+      "id": "iss-facts-2",
+      "character": "Neil",
+      "text": "The ISS serves as a microgravity laboratory where astronauts conduct experiments in biology, physics, astronomy, and more."
+    },
+    {
+      "id": "refuel-instruction",
+      "character": "Neil",
+      "text": "To refuel your spacecraft, you need to dock at the ISS. Navigate your ship close to the station - you'll see it when you're near!"
+    },
+    {
+      "id": "quiz-requirement",
+      "character": "Neil",
+      "text": "Before you can refuel, you'll need to answer some questions about the ISS. Don't worry - you can try as many times as you need!"
+    },
+    {
+      "id": "quiz-success",
+      "character": "Neil",
+      "text": "Excellent work! You've successfully refueled. Now you're ready to continue your journey through space."
+    }
+  ]
+}
+
