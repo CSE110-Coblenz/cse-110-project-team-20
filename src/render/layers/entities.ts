@@ -37,6 +37,9 @@ export class EntitiesLayer {
 
       if (!sprite || !position) continue;
 
+      // Skip refuel-station entities - they're rendered as images (ISS) instead of rectangles
+      if (sprite.key === 'refuel-station') continue;
+
       // Create Konva node (placeholder: rectangle)
       const node = new Konva.Rect({
         x: position.x,
