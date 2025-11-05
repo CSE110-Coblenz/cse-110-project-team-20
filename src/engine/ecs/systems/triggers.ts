@@ -46,9 +46,9 @@ export class TriggersSystem implements System {
       for (const trigger of this.triggers) {
         if (
           position.x < trigger.x + trigger.width &&
-          position.x + 40 > trigger.x && // ship width
+          position.x + 50 > trigger.x && // ship width (50x50)
           position.y < trigger.y + trigger.height &&
-          position.y + 40 > trigger.y // ship height
+          position.y + 50 > trigger.y // ship height (50x50)
         ) {
           // Collision detected
           if (trigger.type === 'refuel') {

@@ -10,6 +10,7 @@ import type { EventBus } from '../../events.js';
 export class FuelSystem implements System {
   private eventBus: EventBus;
   private drainRate = 10; // fuel per second when moving
+  private fuelEmptyEmitted = new Set<number>(); // Track which entities have already emitted fuel:empty
 
   constructor(eventBus: EventBus) {
     this.eventBus = eventBus;
@@ -30,8 +31,15 @@ export class FuelSystem implements System {
         fuel.current -= this.drainRate * dtSeconds;
         if (fuel.current < 0) {
           fuel.current = 0;
-          this.eventBus.emit('fuel:empty');
+          // Only emit once per entity when fuel first reaches 0
+          if (!this.fuelEmptyEmitted.has(entityId)) {
+            this.fuelEmptyEmitted.add(entityId);
+            this.eventBus.emit('fuel:empty');
+          }
         }
+      } else if (fuel.current > 0) {
+        // If fuel is restored and entity is not moving, reset the flag
+        this.fuelEmptyEmitted.delete(entityId);
       }
     });
   }
@@ -44,6 +52,8 @@ export class FuelSystem implements System {
     if (!fuel) return;
 
     fuel.current = Math.min(fuel.current + amount, fuel.max);
+    // Reset fuel empty flag when refueled
+    this.fuelEmptyEmitted.delete(entityId);
     this.eventBus.emit('fuel:refueled', { amount });
   }
 }

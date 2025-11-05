@@ -30,37 +30,25 @@ export class DialogueManager {
   }
 
   private loadNeilImages(): void {
-    // Load mouth closed (neilPaws.png)
     this.neilImageMouthClosed = new Image();
-    this.neilImageMouthClosed.onload = () => {
-      // Ensure image loaded successfully
-      console.log('Neil mouth closed image loaded');
-    };
-    this.neilImageMouthClosed.onerror = () => {
-      console.error('Failed to load neilPaws.png');
-    };
     this.neilImageMouthClosed.src = '/neilPaws.png';
-
-    // Load mouth open (neil-openmouth.png)
     this.neilImageMouthOpen = new Image();
-    this.neilImageMouthOpen.onload = () => {
-      // Ensure image loaded successfully
-      console.log('Neil mouth open image loaded');
-    };
-    this.neilImageMouthOpen.onerror = () => {
-      console.error('Failed to load neil-openMouth.png');
-    };
     this.neilImageMouthOpen.src = '/neil-openMouth.png';
-
     this.currentNeilImage = this.neilImageMouthClosed;
   }
 
   /**
    * Start a dialogue sequence
    */
-  showSequence(sequenceKey: string, onComplete?: () => void): void {
-    const sequences = dialogueDataJson as DialogueSequence;
-    const sequence = sequences[sequenceKey];
+  showSequence(sequenceKey: string, onComplete?: () => void, customSequence?: DialogueSequence): void {
+    let sequence: Dialogue[] | undefined;
+    
+    if (customSequence && customSequence[sequenceKey]) {
+      sequence = customSequence[sequenceKey];
+    } else {
+      const sequences = dialogueDataJson as DialogueSequence;
+      sequence = sequences[sequenceKey];
+    }
 
     if (!sequence || sequence.length === 0) {
       console.warn(`Dialogue sequence "${sequenceKey}" not found`);
@@ -82,11 +70,7 @@ export class DialogueManager {
       this.createDialogueContainer();
     }
 
-    // Update dialogue content
     const characterName = dialogue.character || 'System';
-    const dialogueText = dialogue.text;
-
-    // Create dialogue HTML
     const dialogueHTML = `
       <div style="display: flex; gap: 16px; align-items: flex-start;">
         <div style="flex-shrink: 0;">
@@ -94,19 +78,13 @@ export class DialogueManager {
             id="neil-character-image" 
             src="${this.currentNeilImage?.src || '/neilPaws.png'}" 
             alt="${characterName}"
-            style="width: 120px; height: 120px; min-width: 120px; min-height: 120px; max-width: 120px; max-height: 120px; object-fit: contain; border-radius: 8px; background: rgba(255, 255, 255, 0.1); display: block;"
+            style="width: 120px; height: 120px; object-fit: contain; border-radius: 8px; background: rgba(255, 255, 255, 0.1);"
           />
         </div>
-        <div style="flex: 1; min-width: 0;">
-          <h3 style="margin: 0 0 12px 0; color: #4a9eff; font-size: 20px; font-family: Arial, sans-serif;">
-            ${characterName}
-          </h3>
-          <p style="margin: 0 0 16px 0; color: #ffffff; font-size: 16px; line-height: 1.6; font-family: Arial, sans-serif;">
-            ${dialogueText}
-          </p>
-          <p style="margin: 0; color: #888; font-size: 12px; font-style: italic; text-align: right;">
-            Click to continue...
-          </p>
+        <div style="flex: 1;">
+          <h3 style="margin: 0 0 12px 0; color: #4a9eff; font-size: 20px;">${characterName}</h3>
+          <p style="margin: 0 0 16px 0; color: #ffffff; font-size: 16px; line-height: 1.6;">${dialogue.text}</p>
+          <p style="margin: 0; color: #888; font-size: 12px; font-style: italic; text-align: right;">Click to continue...</p>
         </div>
       </div>
     `;
@@ -114,15 +92,7 @@ export class DialogueManager {
     if (this.container) {
       this.container.innerHTML = dialogueHTML;
       this.container.style.display = 'flex';
-
-      // Update Neil image reference for animation
-      const imgElement = this.container.querySelector('#neil-character-image') as HTMLImageElement;
-      if (imgElement) {
-        imgElement.addEventListener('click', this.handleContinue.bind(this));
-      }
-
-      // Make entire dialogue box clickable
-      this.container.addEventListener('click', this.handleContinue.bind(this));
+      this.container.onclick = this.handleContinue.bind(this);
     }
   }
 
@@ -148,20 +118,6 @@ export class DialogueManager {
       transition: transform 0.2s, box-shadow 0.2s;
     `;
 
-    // Hover effect
-    this.container.addEventListener('mouseenter', () => {
-      if (this.container) {
-        this.container.style.transform = 'translateX(-50%) translateY(-4px)';
-        this.container.style.boxShadow = '0 12px 40px rgba(74, 158, 255, 0.4)';
-      }
-    });
-
-    this.container.addEventListener('mouseleave', () => {
-      if (this.container) {
-        this.container.style.transform = 'translateX(-50%)';
-        this.container.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.7)';
-      }
-    });
 
     document.body.appendChild(this.container);
   }
@@ -192,7 +148,7 @@ export class DialogueManager {
       clearInterval(this.mouthAnimationTimer);
     }
 
-    // Animate mouth every 400ms (speaking animation - faster)
+    // Animate mouth every 250ms (speaking animation - very fast)
     this.mouthAnimationTimer = window.setInterval(() => {
       if (!this.container) return;
 
@@ -214,7 +170,7 @@ export class DialogueManager {
           imgElement.style.objectFit = 'contain';
         }
       }
-    }, 400);
+    }, 250);
   }
 
   /**
