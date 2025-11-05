@@ -17,13 +17,13 @@ export function createButton(
     font-size: 18px;
     font-weight: bold;
     color: white;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #ff914d;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    font-family: 'Arial', sans-serif;
+    font-family: 'Press Start 2P', sans-serif;
   `;
 
   button.addEventListener('mouseenter', () => {
