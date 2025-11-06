@@ -28,10 +28,11 @@ export class TitleScene implements Scene {
     const earth = drawEarth(
       this.stage.getWidth() / 2,
       this.stage.getHeight() / 2,
-      250
+      300
     );
     this.stage.backgroundLayer.add(earth);
     this.stage.backgroundLayer.batchDraw();
+
 
     // Add title text to background layer
     const title = new Konva.Text({

@@ -12,9 +12,17 @@ export function drawEarth(x: number, y: number, radius: number): Konva.Group {
         fill: '#3a86ff',
 });
 
-    // Simple landmass shapes
-
     earthGroup.add(ocean);
+
+    // Pixel outline for Earth
+    const outline = new Konva.Circle({
+        radius,
+        stroke: '#0448b5ff',
+        strokeWidth: 10,
+    });
+    earthGroup.add(outline);
+
+    // Simple landmass shapes
 
     return earthGroup;
 }
