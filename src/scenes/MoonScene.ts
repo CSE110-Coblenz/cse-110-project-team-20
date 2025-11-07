@@ -4,6 +4,7 @@
 import type { Scene } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
 import type { SaveRepository } from '../persistence/SaveRepository.js';
+import type { GameOverUI } from '../ui/gameOver.js';
 import Konva from 'konva';
 import factsDataJson from '../data/facts.json' with { type: 'json' };
 
@@ -15,11 +16,13 @@ interface Fact {
 export class MoonScene implements Scene {
   private stage: RenderStage;
   private saveRepository: SaveRepository;
+  private gameOverUI: GameOverUI;
   private uiContainer: HTMLDivElement | null = null;
 
-  constructor(stage: RenderStage, saveRepository: SaveRepository) {
+  constructor(stage: RenderStage, saveRepository: SaveRepository, gameOverUI: GameOverUI) {
     this.stage = stage;
     this.saveRepository = saveRepository;
+    this.gameOverUI = gameOverUI;
   }
 
   init(): void {

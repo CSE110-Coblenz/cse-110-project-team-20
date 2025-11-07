@@ -143,6 +143,10 @@ export class QuizUI {
     }
   }
 
+  isShowing(): boolean {
+    return this.dialog.isShowing();
+  }
+
   dispose(): void {
     this.dialog.dispose();
   }

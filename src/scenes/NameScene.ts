@@ -5,6 +5,7 @@ import type { Scene } from '../engine/sceneManager.js';
 import type { SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
 import type { SaveRepository } from '../persistence/SaveRepository.js';
+import type { GameOverUI } from '../ui/gameOver.js';
 import Konva from 'konva';
 import { createButton } from '../ui/buttons.js';
 
@@ -12,6 +13,7 @@ export class NameScene implements Scene {
   private sceneManager: SceneManager;
   private stage: RenderStage;
   private saveRepository: SaveRepository;
+  private gameOverUI: GameOverUI;
   private uiContainer: HTMLDivElement | null = null;
   private input: HTMLInputElement | null = null;
   private submitButton: HTMLButtonElement | null = null;
@@ -19,11 +21,13 @@ export class NameScene implements Scene {
   constructor(
     sceneManager: SceneManager,
     stage: RenderStage,
-    saveRepository: SaveRepository
+    saveRepository: SaveRepository,
+    gameOverUI: GameOverUI
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
     this.saveRepository = saveRepository;
+    this.gameOverUI = gameOverUI;
   }
 
   init(): void {

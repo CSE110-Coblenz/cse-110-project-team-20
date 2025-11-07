@@ -84,7 +84,7 @@ export class DialogueManager {
         <div style="flex: 1;">
           <h3 style="margin: 0 0 12px 0; color: #4a9eff; font-size: 20px;">${characterName}</h3>
           <p style="margin: 0 0 16px 0; color: #ffffff; font-size: 16px; line-height: 1.6;">${dialogue.text}</p>
-          <p style="margin: 0; color: #888; font-size: 12px; font-style: italic; text-align: right;">Click to continue...</p>
+          <p style="margin: 0; color: #888; font-size: 12px; font-style: italic; text-align: right;">Click or press any key to continue...</p>
         </div>
       </div>
     `;
@@ -93,6 +93,9 @@ export class DialogueManager {
       this.container.innerHTML = dialogueHTML;
       this.container.style.display = 'flex';
       this.container.onclick = this.handleContinue.bind(this);
+      
+      // Add keyboard event listener for any key press
+      this.setupKeyboardListener();
     }
   }
 
@@ -120,6 +123,32 @@ export class DialogueManager {
 
 
     document.body.appendChild(this.container);
+  }
+
+  /**
+   * Setup keyboard listener for continuing dialogue
+   */
+  private keyboardHandler: ((e: KeyboardEvent) => void) | null = null;
+
+  private setupKeyboardListener(): void {
+    // Remove existing listener if any
+    if (this.keyboardHandler) {
+      document.removeEventListener('keydown', this.keyboardHandler);
+    }
+
+    // Create new handler
+    this.keyboardHandler = (e: KeyboardEvent) => {
+      if (this.isShowing()) {
+        // Prevent default behavior for space/enter to avoid scrolling
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+        }
+        this.handleContinue();
+      }
+    };
+
+    // Add listener
+    document.addEventListener('keydown', this.keyboardHandler);
   }
 
   /**
@@ -188,6 +217,13 @@ export class DialogueManager {
    */
   hide(): void {
     this.stopMouthAnimation();
+    
+    // Remove keyboard listener
+    if (this.keyboardHandler) {
+      document.removeEventListener('keydown', this.keyboardHandler);
+      this.keyboardHandler = null;
+    }
+    
     if (this.container) {
       this.container.style.display = 'none';
     }
@@ -207,6 +243,13 @@ export class DialogueManager {
    */
   dispose(): void {
     this.stopMouthAnimation();
+    
+    // Remove keyboard listener
+    if (this.keyboardHandler) {
+      document.removeEventListener('keydown', this.keyboardHandler);
+      this.keyboardHandler = null;
+    }
+    
     if (this.container && this.container.parentNode) {
       this.container.parentNode.removeChild(this.container);
     }

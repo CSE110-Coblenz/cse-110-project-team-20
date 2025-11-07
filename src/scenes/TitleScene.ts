@@ -4,18 +4,21 @@
 import type { Scene } from '../engine/sceneManager.js';
 import type { SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
+import type { GameOverUI } from '../ui/gameOver.js';
 import Konva from 'konva';
 import { createButton } from '../ui/buttons.js';
 
 export class TitleScene implements Scene {
   private sceneManager: SceneManager;
   private stage: RenderStage;
+  private gameOverUI: GameOverUI;
   private startButton: HTMLButtonElement | null = null;
   private uiContainer: HTMLDivElement | null = null;
 
-  constructor(sceneManager: SceneManager, stage: RenderStage) {
+  constructor(sceneManager: SceneManager, stage: RenderStage, gameOverUI: GameOverUI) {
     this.sceneManager = sceneManager;
     this.stage = stage;
+    this.gameOverUI = gameOverUI;
   }
 
   init(): void {

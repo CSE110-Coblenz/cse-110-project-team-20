@@ -5,12 +5,14 @@ import type { Scene } from '../engine/sceneManager.js';
 import type { SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
 import type { SaveRepository } from '../persistence/SaveRepository.js';
+import type { GameOverUI } from '../ui/gameOver.js';
 import Konva from 'konva';
 
 export class CutsceneScene implements Scene {
   private sceneManager: SceneManager;
   private stage: RenderStage;
   private saveRepository: SaveRepository;
+  private gameOverUI: GameOverUI;
   private shipSprite: Konva.Rect | null = null;
   private tween: Konva.Tween | null = null;
   private completed = false;
@@ -18,11 +20,13 @@ export class CutsceneScene implements Scene {
   constructor(
     sceneManager: SceneManager,
     stage: RenderStage,
-    saveRepository: SaveRepository
+    saveRepository: SaveRepository,
+    gameOverUI: GameOverUI
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
     this.saveRepository = saveRepository;
+    this.gameOverUI = gameOverUI;
   }
 
   init(): void {
