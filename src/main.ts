@@ -47,7 +47,7 @@ function init(): void {
   loop.registerSystem(fuelSystem);
 
   // Start with title scene
-  sceneManager.transitionTo('title');
+  sceneManager.transitionTo('iss');
 
   // Start game loop
   loop.start();

@@ -31,6 +31,7 @@ import type { QuizData } from '../ui/quiz.js';
 import type { Velocity } from '../engine/ecs/components/velocity.js';
 import type { Fuel } from '../engine/ecs/components/fuel.js';
 import type { Position } from '../engine/ecs/components/position.js';
+import { PasswordCracker } from '../ui/passwordCracker.js';
 
 export class ISSScene implements Scene {
   private sceneManager: SceneManager;
@@ -55,7 +56,7 @@ export class ISSScene implements Scene {
   private tutorialStep = 0; // Track tutorial progress (will be used in Phase 4)
   private tutorialCompleted = false;
   private gameOverUI: GameOverUI;
-
+  private passwordCracker: PasswordCracker;
   constructor(
     sceneManager: SceneManager,
     stage: RenderStage,
@@ -74,11 +75,13 @@ export class ISSScene implements Scene {
     this.entitiesLayer = new EntitiesLayer(this.stage.entitiesLayer, world);
     this.dialogueManager = new DialogueManager();
     this.gameOverUI = new GameOverUI();
+
     this.starfieldLayer = new StarfieldLayer(
       this.stage.backgroundLayer,
       this.stage.getWidth(),
       this.stage.getHeight()
     );
+    this.passwordCracker = new PasswordCracker(this.eventBus);
     // Triggers system will be initialized after fuel system is passed
   }
 
@@ -92,7 +95,7 @@ export class ISSScene implements Scene {
     );
     this.world.addComponent(this.shipId, createVelocity(0, 0));
     // Start with partial fuel (30% = 30 out of 100) to force learning refueling
-    this.world.addComponent(this.shipId, createFuel(100, 30)); // max: 100, start: 30
+    this.world.addComponent(this.shipId, createFuel(100, 100)); // max: 100, start: 30
     this.world.addComponent(this.shipId, createSprite('ship'));
 
     // Create refuel station entity (for ECS tracking) - top right
@@ -130,6 +133,12 @@ export class ISSScene implements Scene {
       this.sceneManager.transitionTo('cutscene');
     });
 
+    this.eventBus.on('minigame:passed', (e) => {
+      if (e.minigameId === 'iss-refuel-puzzle') {
+        this.showQuiz(); // Show the quiz AFTER the minigame is passed
+      }
+    });
+
     // Listen for fuel empty
     this.eventBus.on('fuel:empty', () => {
       // Stop movement when fuel is empty
@@ -148,7 +157,7 @@ export class ISSScene implements Scene {
     // Note: This will be changed in Phase 5 to show quiz BEFORE refueling
     this.eventBus.on('fuel:refueled', () => {
       if (!this.quizShown) {
-        this.showQuiz();
+        this.showPasswordGame();
         this.quizShown = true;
       }
     });
@@ -439,6 +448,14 @@ export class ISSScene implements Scene {
 
     // Update HUD
     this.hud.updateFuel(fuel.current, fuel.max);
+  }
+
+  private showPasswordGame(): void {
+    this.passwordCracker.show({
+      id: 'iss-refuel-puzzle',
+      title: 'ISS Refuel System',
+      puzzleSetKey:'iss'
+    });
   }
 
   private showQuiz(): void {

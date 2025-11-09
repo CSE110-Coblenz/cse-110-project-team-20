@@ -12,11 +12,17 @@ type GameEvents = {
   'fuel:refueled': { amount: number };
   'save:updated': void;
   'scene:transition': { to: string };
+  'minigame:passed': { minigameId: string };
+  'minigame:failed': { minigameId: string };
 };
 
 export type EventBus = Emitter<GameEvents>;
 
 export function createEventBus(): EventBus {
   return mitt<GameEvents>();
+
+  
 }
+
+
 
