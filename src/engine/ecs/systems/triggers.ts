@@ -1,10 +1,15 @@
 /**
  * Trigger System - AABB collision detection for refuel stations
+ * 
+ * SOLID Principle: Single Responsibility - Only handles trigger collisions
+ * DRY Principle: Uses shared collision utility instead of duplicating logic
  */
 import type { World } from '../world.js';
-import type { System } from '../../loop.js';
+import type { System } from '../types.js';
 import type { Position } from '../components/position.js';
 import type { FuelSystem } from './fuelSystem.js';
+import { checkAABBCollision, createShipBoundingBox } from '../../utils/collision.js';
+import { CONFIG } from '../../../config.js';
 
 export interface Trigger {
   id: string;
@@ -42,17 +47,22 @@ export class TriggersSystem implements System {
       const position = world.getComponent<Position>(shipId, 'position');
       if (!position) continue;
 
-      // Simple AABB check with trigger boxes
+      // Use shared collision utility (DRY principle)
+      const shipBox = createShipBoundingBox(position.x, position.y);
+      
       for (const trigger of this.triggers) {
-        if (
-          position.x < trigger.x + trigger.width &&
-          position.x + 50 > trigger.x && // ship width (50x50)
-          position.y < trigger.y + trigger.height &&
-          position.y + 50 > trigger.y // ship height (50x50)
-        ) {
+        const triggerBox = {
+          x: trigger.x,
+          y: trigger.y,
+          width: trigger.width,
+          height: trigger.height,
+        };
+        
+        if (checkAABBCollision(shipBox, triggerBox)) {
           // Collision detected
           if (trigger.type === 'refuel') {
-            this.fuelSystem.refuel(world, shipId, 100); // Refuel to max
+            // Use config constant instead of magic number (DRY principle)
+            this.fuelSystem.refuel(world, shipId, CONFIG.FUEL_REFUEL_AMOUNT);
           }
         }
       }

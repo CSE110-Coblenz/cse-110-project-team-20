@@ -4,6 +4,7 @@
 import type { Scene } from '../engine/sceneManager.js';
 import type { SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
+import type { GameOverUI } from '../ui/gameOver.js';
 import Konva from 'konva';
 import { createButton } from '../ui/buttons.js';
 
@@ -13,7 +14,7 @@ export class TitleScene implements Scene {
   private startButton: HTMLButtonElement | null = null;
   private uiContainer: HTMLDivElement | null = null;
 
-  constructor(sceneManager: SceneManager, stage: RenderStage) {
+  constructor(sceneManager: SceneManager, stage: RenderStage, _gameOverUI: GameOverUI) {
     this.sceneManager = sceneManager;
     this.stage = stage;
   }
@@ -70,11 +71,11 @@ export class TitleScene implements Scene {
 
     // Settings and Exit stubs
     const settingsButton = createButton('Settings', () => {
-      console.log('Settings (stub)');
+      // Settings functionality (stub)
     });
 
     const exitButton = createButton('Exit', () => {
-      console.log('Exit (stub)');
+      // Exit functionality (stub)
     });
 
     this.uiContainer.appendChild(this.startButton);

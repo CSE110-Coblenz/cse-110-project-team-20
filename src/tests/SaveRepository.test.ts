@@ -4,6 +4,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SaveRepository } from '../persistence/SaveRepository.js';
 import { createEventBus } from '../engine/events.js';
+import { EventTopics } from '../engine/events/topics.js';
 
 describe('SaveRepository', () => {
   let saveRepository: SaveRepository;
@@ -37,7 +38,7 @@ describe('SaveRepository', () => {
 
   it('should emit save:updated event on set', () => {
     const handler = vi.fn();
-    eventBus.on('save:updated', handler);
+    eventBus.on(EventTopics.SAVE_UPDATED, handler);
     
     saveRepository.set({ playerName: 'Test' });
     expect(handler).toHaveBeenCalledTimes(1);

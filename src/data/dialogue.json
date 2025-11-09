@@ -3,7 +3,7 @@
     {
       "id": "welcome",
       "character": "Neil",
-      "text": "Hello there, space explorer! I'm Neil deGrasse Tyson, and I'll be your guide on this journey. Welcome to the International Space Station tutorial!"
+      "text": "Hello there, space explorer! My name is Neil DePaws Tyson, and I'll be your guide on this journey. Welcome to the International Space Station tutorial!"
     },
     {
       "id": "movement-intro",
@@ -39,7 +39,9 @@
       "id": "quiz-requirement",
       "character": "Neil",
       "text": "Before you can refuel, you'll need to answer some questions about the ISS. Don't worry - you can try as many times as you need!"
-    },
+    }
+  ],
+  "refuel-success": [
     {
       "id": "quiz-success",
       "character": "Neil",

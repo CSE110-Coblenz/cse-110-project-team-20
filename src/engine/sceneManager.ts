@@ -2,6 +2,7 @@
  * Scene Manager - handles scene lifecycle and transitions
  */
 import type { EventBus } from './events.js';
+import { EventTopics } from './events/topics.js';
 
 export interface Scene {
   init(): void;
@@ -26,7 +27,6 @@ export class SceneManager {
   transitionTo(name: string): void {
     const factory = this.sceneMap.get(name);
     if (!factory) {
-      console.error(`Scene "${name}" not found`);
       return;
     }
 
@@ -36,7 +36,7 @@ export class SceneManager {
 
     this.currentScene = factory();
     this.currentScene.init();
-    this.eventBus.emit('scene:transition', { to: name });
+    this.eventBus.emit(EventTopics.SCENE_TRANSITION, { to: name });
   }
 
   update(dt: number): void {

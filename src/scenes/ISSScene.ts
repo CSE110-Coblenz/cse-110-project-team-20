@@ -6,6 +6,7 @@ import type { SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
 import type { World } from '../engine/ecs/world.js';
 import type { EventBus } from '../engine/events.js';
+import { EventTopics } from '../engine/events/topics.js';
 import type { SaveRepository } from '../persistence/SaveRepository.js';
 import type { Keyboard } from '../input/keyboard.js';
 import type { QuizUI } from '../ui/quiz.js';
@@ -13,7 +14,7 @@ import { Keyboard as KeyboardClass } from '../input/keyboard.js';
 import { QuizUI as QuizUIClass } from '../ui/quiz.js';
 import { HUD } from '../ui/hud.js';
 import { DialogueManager } from '../content/dialogue.js';
-import { GameOverUI } from '../ui/gameOver.js';
+import type { GameOverUI } from '../ui/gameOver.js';
 import { createPosition } from '../engine/ecs/components/position.js';
 import { createVelocity } from '../engine/ecs/components/velocity.js';
 import { createFuel } from '../engine/ecs/components/fuel.js';
@@ -21,6 +22,7 @@ import { createSprite } from '../engine/ecs/components/sprite.js';
 import { TriggersSystem } from '../engine/ecs/systems/triggers.js';
 import { FuelSystem } from '../engine/ecs/systems/fuelSystem.js';
 import { ObstaclesSystem } from '../engine/ecs/systems/obstacles.js';
+import { PlayerInputSystem } from '../engine/ecs/systems/playerInput.js';
 import { EntitiesLayer } from '../render/layers/entities.js';
 import { StarfieldLayer } from '../render/layers/starfield.js';
 import Konva from 'konva';
@@ -31,6 +33,7 @@ import type { QuizData } from '../ui/quiz.js';
 import type { Velocity } from '../engine/ecs/components/velocity.js';
 import type { Fuel } from '../engine/ecs/components/fuel.js';
 import type { Position } from '../engine/ecs/components/position.js';
+import { CONFIG } from '../config.js';
 import { PasswordCracker } from '../ui/passwordCracker.js';
 
 export class ISSScene implements Scene {
@@ -44,6 +47,7 @@ export class ISSScene implements Scene {
   private entitiesLayer: EntitiesLayer;
   private triggersSystem!: TriggersSystem;
   private obstaclesSystem!: ObstaclesSystem;
+  private playerInputSystem!: PlayerInputSystem;
   private dialogueManager: DialogueManager;
   private starfieldLayer: StarfieldLayer;
   private issImage: Konva.Image | null = null;
@@ -51,18 +55,25 @@ export class ISSScene implements Scene {
 
   private shipId: number | null = null;
   private refuelStationId: number | null = null;
+  private asteroidEntities: Map<string, number> = new Map(); // obstacle id -> entity id
+  private asteroidNodes: Map<string, Konva.Circle | Konva.Image> = new Map(); // obstacle id -> Konva node (circle for testing, image later)
   private speed = 200; // pixels per second
+  // @ts-expect-error - Reserved for future levels with moving asteroids
+  private asteroidSpeed = 50; // pixels per second for asteroids (for future levels with moving asteroids)
+  // Hitbox shrink factor is now in CONFIG for easy adjustment
   private quizShown = false;
   private tutorialStep = 0; // Track tutorial progress (will be used in Phase 4)
   private tutorialCompleted = false;
   private gameOverUI: GameOverUI;
+  private knockbackDisableUntil = 0; // Timestamp when knockback movement disable ends
   private passwordCracker: PasswordCracker;
   constructor(
     sceneManager: SceneManager,
     stage: RenderStage,
     world: World,
     eventBus: EventBus,
-    saveRepository: SaveRepository
+    saveRepository: SaveRepository,
+    gameOverUI: GameOverUI
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
@@ -74,7 +85,7 @@ export class ISSScene implements Scene {
     this.hud = new HUD();
     this.entitiesLayer = new EntitiesLayer(this.stage.entitiesLayer, world);
     this.dialogueManager = new DialogueManager();
-    this.gameOverUI = new GameOverUI();
+    this.gameOverUI = gameOverUI;
 
     this.starfieldLayer = new StarfieldLayer(
       this.stage.backgroundLayer,
@@ -94,8 +105,12 @@ export class ISSScene implements Scene {
       createPosition(100, this.stage.getHeight() - 150) // Bottom left
     );
     this.world.addComponent(this.shipId, createVelocity(0, 0));
-    // Start with partial fuel (30% = 30 out of 100) to force learning refueling
-    this.world.addComponent(this.shipId, createFuel(100, 100)); // max: 100, start: 30
+    // Use config constants instead of magic numbers (DRY principle)
+    // Start with partial fuel to force learning refueling
+    this.world.addComponent(
+      this.shipId,
+      createFuel(CONFIG.FUEL_MAX, CONFIG.FUEL_INITIAL)
+    );
     this.world.addComponent(this.shipId, createSprite('ship'));
 
     // Create refuel station entity (for ECS tracking) - top right
@@ -113,6 +128,28 @@ export class ISSScene implements Scene {
     const fuelSystem = new FuelSystem(this.eventBus);
     this.triggersSystem = new TriggersSystem(fuelSystem);
     this.obstaclesSystem = new ObstaclesSystem();
+    this.obstaclesSystem.setStageDimensions(this.stage.getWidth(), this.stage.getHeight());
+    // Set callback for when knockback occurs to disable movement temporarily
+    this.obstaclesSystem.setOnKnockbackCallback(() => {
+      const KNOCKBACK_DISABLE_MS = 200; // Disable movement for 200ms (0.2 seconds)
+      this.knockbackDisableUntil = Date.now() + KNOCKBACK_DISABLE_MS;
+    });
+    this.playerInputSystem = new PlayerInputSystem(this.keyboard, this.speed);
+    this.playerInputSystem.setPlayerEntity(this.shipId);
+    // Set condition for when input should be processed
+    this.playerInputSystem.setCondition(() => {
+      if (!this.shipId) return false;
+      const fuel = this.world.getComponent<Fuel>(this.shipId, 'fuel');
+      const now = Date.now();
+      return fuel !== null && 
+             fuel !== undefined &&
+             fuel.current > 0 && 
+             this.tutorialCompleted && 
+             !this.dialogueManager.isShowing() && 
+             !this.gameOverUI.isShowing() && 
+             !this.quizUI.isShowing() &&
+             now >= this.knockbackDisableUntil; // Allow movement only after knockback disable period ends
+    });
     // Trigger will be added/updated in loadISS() after image loads with correct dimensions
     
     // Create obstacles
@@ -128,19 +165,17 @@ export class ISSScene implements Scene {
     this.stage.uiLayer.batchDraw();
 
     // Listen for quiz completion
-    this.eventBus.on('quiz:passed', () => {
-      this.eventBus.emit('cutscene:start', { cutsceneId: 'iss-to-moon' });
-      this.sceneManager.transitionTo('cutscene');
+    this.eventBus.on(EventTopics.QUIZ_PASSED, () => {
+      // Show success message after refueling and passing quiz
+      this.dialogueManager.showSequence('refuel-success', () => {
+        this.eventBus.emit(EventTopics.CUTSCENE_START, { cutsceneId: 'iss-to-moon' });
+        this.sceneManager.transitionTo('cutscene');
+      });
     });
 
-    this.eventBus.on('minigame:passed', (e) => {
-      if (e.minigameId === 'iss-refuel-puzzle') {
-        this.showQuiz(); // Show the quiz AFTER the minigame is passed
-      }
-    });
 
     // Listen for fuel empty
-    this.eventBus.on('fuel:empty', () => {
+    this.eventBus.on(EventTopics.FUEL_EMPTY, () => {
       // Stop movement when fuel is empty
       if (this.shipId) {
         const velocity = this.world.getComponent<Velocity>(this.shipId, 'velocity');
@@ -155,7 +190,14 @@ export class ISSScene implements Scene {
 
     // Listen for refuel - show quiz after successful refuel (the puzzle)
     // Note: This will be changed in Phase 5 to show quiz BEFORE refueling
-    this.eventBus.on('fuel:refueled', () => {
+    this.eventBus.on('minigame:passed', (e) => {
+      if(e.minigameId === 'iss-refuel-puzzle'){
+        this.showQuiz()
+      }
+    });
+
+
+    this.eventBus.on(EventTopics.FUEL_REFUELED, () => {
       if (!this.quizShown) {
         this.showPasswordGame();
         this.quizShown = true;
@@ -188,12 +230,19 @@ export class ISSScene implements Scene {
     const sequences = dialogueDataJson as DialogueSequence;
     const tutorialSequence = sequences['iss-tutorial'];
     
+    if (!tutorialSequence) {
+      return { 'iss-tutorial': [] };
+    }
+    
     // Clone the sequence and customize the first dialogue
     const customized = [...tutorialSequence];
-    customized[0] = {
-      ...customized[0],
-      text: `Hello ${playerName}! I'm Neil deGrasse Tyson, and I'll be your guide on this journey. Welcome to the International Space Station tutorial!`
-    };
+    const firstDialogue = customized[0];
+    if (firstDialogue) {
+      customized[0] = {
+        ...firstDialogue,
+        text: `Hello ${playerName}! My name is Neil DePaws Tyson, and I'll be your guide on this journey. Welcome to the International Space Station tutorial!`
+      };
+    }
     
     return {
       'iss-tutorial': customized
@@ -274,7 +323,6 @@ export class ISSScene implements Scene {
       this.stage.backgroundLayer.batchDraw();
     };
     issImg.onerror = () => {
-      console.error('Failed to load ISS image:', '/iss-bg.png');
       // Fallback: draw a placeholder rectangle in top right
       const placeholder = new Konva.Rect({
         x: this.stage.getWidth() - 200 - 90,
@@ -294,40 +342,109 @@ export class ISSScene implements Scene {
 
   /**
    * Create obstacles that drain fuel when hit
+   * Asteroids move in random directions
    */
   private createObstacles(): void {
     // Create 3-4 obstacles between bottom left (start) and top right (ISS)
     const obstacles = [
       { x: 300, y: this.stage.getHeight() - 200, width: 60, height: 60 },
-      { x: 500, y: 400, width: 80, height: 80 },
-      { x: 700, y: 200, width: 70, height: 70 },
+      { x: 500, y: 400, width: 70, height: 70 },
+      { x: 700, y: 200, width: 65, height: 65 },
       { x: 900, y: 300, width: 60, height: 60 },
     ];
 
     obstacles.forEach((obstacle, index) => {
+      const obstacleId = `obstacle-${index}`;
+      
+      // Create ECS entity for asteroid
+      const asteroidEntityId = this.world.createEntity();
+      this.asteroidEntities.set(obstacleId, asteroidEntityId);
+      
+      // Add components to entity (no velocity = stationary)
+      this.world.addComponent(asteroidEntityId, createPosition(obstacle.x, obstacle.y));
+      this.world.addComponent(asteroidEntityId, createSprite('asteroid'));
+      
+      // Calculate hitbox - use obstacle size with shrink factor
+      // For circles, we'll use the smaller dimension as diameter
+      const hitboxSize = Math.min(obstacle.width, obstacle.height);
+      const hitboxWidth = hitboxSize * CONFIG.ASTEROID_HITBOX_SHRINK;
+      const hitboxHeight = hitboxSize * CONFIG.ASTEROID_HITBOX_SHRINK;
+      
+      // Center the hitbox within the obstacle area
+      const hitboxOffsetX = (obstacle.width - hitboxWidth) / 2;
+      const hitboxOffsetY = (obstacle.height - hitboxHeight) / 2;
+      
       // Add obstacle to system
       this.obstaclesSystem.addObstacle({
-        id: `obstacle-${index}`,
-        x: obstacle.x,
-        y: obstacle.y,
-        width: obstacle.width,
-        height: obstacle.height,
-        fuelDrain: 15, // Drain 15 fuel per collision
+        id: obstacleId,
+        entityId: asteroidEntityId,
+        width: hitboxWidth,
+        height: hitboxHeight,
+        fuelDrain: CONFIG.FUEL_DRAIN_PER_COLLISION,
+        offsetX: hitboxOffsetX,
+        offsetY: hitboxOffsetY,
       });
-
-      // Render obstacle as red rectangle
-      const obstacleRect = new Konva.Rect({
-        x: obstacle.x,
-        y: obstacle.y,
-        width: obstacle.width,
-        height: obstacle.height,
-        fill: '#ff4444',
-        stroke: '#cc0000',
-        strokeWidth: 2,
-        opacity: 0.8,
-      });
-      this.stage.backgroundLayer.add(obstacleRect);
+      
+      // Calculate collision center (what collision detection uses)
+      const asteroidInfo = this.obstaclesSystem.calculateAsteroidCenter(
+        { x: obstacle.x, y: obstacle.y },
+        this.obstaclesSystem.getObstacle(obstacleId)!
+      );
+      
+      // Load asteroid image
+      const asteroidImg = new Image();
+      asteroidImg.onload = () => {
+        // Calculate image dimensions maintaining aspect ratio
+        let imageWidth = obstacle.width;
+        let imageHeight = obstacle.height;
+        
+        if (asteroidImg.width && asteroidImg.height) {
+          const aspectRatio = asteroidImg.width / asteroidImg.height;
+          if (aspectRatio > 1) {
+            // Image is wider - fit to width
+            imageHeight = imageWidth / aspectRatio;
+          } else {
+            // Image is taller - fit to height
+            imageWidth = imageHeight * aspectRatio;
+          }
+        }
+        
+        // Position image so its center matches collision center
+        // Image top-left = collision center - imageSize/2
+        const asteroidNode = new Konva.Image({
+          x: asteroidInfo.x - imageWidth / 2,
+          y: asteroidInfo.y - imageHeight / 2,
+          image: asteroidImg,
+          width: imageWidth,
+          height: imageHeight,
+          opacity: 0.9,
+        });
+        
+        this.asteroidNodes.set(obstacleId, asteroidNode);
+        this.stage.backgroundLayer.add(asteroidNode);
+        this.stage.backgroundLayer.batchDraw();
+      };
+      
+      asteroidImg.onerror = () => {
+        console.error('Failed to load asteroid image:', '/asteroid-obstacle.png');
+        // Fallback to circle
+        const asteroidCircle = new Konva.Circle({
+          x: asteroidInfo.x,
+          y: asteroidInfo.y,
+          radius: asteroidInfo.radius,
+          fill: '#ff6b6b',
+          stroke: '#ff4444',
+          strokeWidth: 2,
+          opacity: 0.8,
+        });
+        this.asteroidNodes.set(obstacleId, asteroidCircle);
+        this.stage.backgroundLayer.add(asteroidCircle);
+      };
+      
+      asteroidImg.src = '/asteroid-obstacle.png';
     });
+    
+    this.stage.backgroundLayer.batchDraw();
   }
 
   /**
@@ -344,9 +461,9 @@ export class ISSScene implements Scene {
    */
   private showFuelEmptyDialog(): void {
     this.gameOverUI.show({
-      title: 'Out of Fuel!',
-      message: 'Your spacecraft has run out of fuel. You\'ll need to restart the tutorial.',
-      buttonText: 'Start Over',
+      title: 'Oh no! Out of fuel',
+      message: 'Your spacecraft has run out of fuel. Don\'t worry, you can restart and try again!',
+      buttonText: 'Restart',
       onRestart: () => {
         this.restartTutorial();
       },
@@ -375,10 +492,10 @@ export class ISSScene implements Scene {
         velocity.vy = 0;
       }
 
-      // Reset fuel to 30% (same as initial)
+      // Reset fuel to initial amount (use config constant - DRY principle)
       const fuel = this.world.getComponent<Fuel>(this.shipId, 'fuel');
       if (fuel) {
-        fuel.current = 30;
+        fuel.current = CONFIG.FUEL_INITIAL;
       }
 
       // Reset rotation
@@ -405,50 +522,53 @@ export class ISSScene implements Scene {
     // Update triggers system (check refuel station)
     this.triggersSystem.update(dt, this.world);
 
-    // Update keyboard input
-    const keys = this.keyboard.getState();
-
-    if (!this.shipId) return;
-
-    const velocity = this.world.getComponent<Velocity>(this.shipId, 'velocity');
-    const fuel = this.world.getComponent<Fuel>(this.shipId, 'fuel');
-    const position = this.world.getComponent<Position>(this.shipId, 'position');
-
-    if (!velocity || !fuel || !position) return;
-
-    // Only allow movement if fuel > 0 AND tutorial dialogue is complete
-    if (fuel.current > 0 && this.tutorialCompleted && !this.dialogueManager.isShowing() && !this.gameOverUI.isShowing()) {
-      velocity.vx = 0;
-      velocity.vy = 0;
-
-      if (keys.left) velocity.vx = -this.speed;
-      if (keys.right) velocity.vx = this.speed;
-      if (keys.up) velocity.vy = -this.speed;
-      if (keys.down) velocity.vy = this.speed;
-
-      // Update ship rotation to face movement direction
-      const speed = Math.sqrt(velocity.vx * velocity.vx + velocity.vy * velocity.vy);
-      if (speed > 0.01) {
-        // Calculate angle in degrees (0 = right, 90 = down, 180 = left, 270 = up)
-        // atan2 returns angle in radians, convert to degrees
-        // We subtract 90 degrees because in Konva, 0 degrees points right
-        const angleRad = Math.atan2(velocity.vy, velocity.vx);
-        position.angle = (angleRad * 180) / Math.PI;
-      }
-    } else {
-      velocity.vx = 0;
-      velocity.vy = 0;
+    // Update player input (RotationSystem is handled by the game loop automatically)
+    if (this.playerInputSystem) {
+      this.playerInputSystem.update(dt, this.world);
     }
-
-    // Update triggers
-    this.triggersSystem.update(dt, this.world);
 
     // Update starfield animation
     this.starfieldLayer.update(dt);
 
+    // Update asteroid positions (sync Konva nodes with entity positions)
+    // Note: Circles are centered at the hitbox center
+    for (const [obstacleId, entityId] of this.asteroidEntities.entries()) {
+      const position = this.world.getComponent<Position>(entityId, 'position');
+      const asteroidNode = this.asteroidNodes.get(obstacleId);
+      
+      if (position && asteroidNode) {
+        const obstacle = this.obstaclesSystem.getObstacle(obstacleId);
+        if (obstacle) {
+          // Calculate collision center (same as collision detection)
+          const asteroidInfo = this.obstaclesSystem.calculateAsteroidCenter(position, obstacle);
+          
+          if (asteroidNode instanceof Konva.Circle) {
+            // Fallback circle - center matches collision center
+            asteroidNode.x(asteroidInfo.x);
+            asteroidNode.y(asteroidInfo.y);
+            asteroidNode.radius(asteroidInfo.radius);
+          } else if (asteroidNode instanceof Konva.Image) {
+            // Position image so its center matches collision center
+            // Image top-left = collision center - imageSize/2
+            const imageWidth = asteroidNode.width();
+            const imageHeight = asteroidNode.height();
+            asteroidNode.x(asteroidInfo.x - imageWidth / 2);
+            asteroidNode.y(asteroidInfo.y - imageHeight / 2);
+          }
+        }
+      }
+    }
+
     // Update HUD
-    this.hud.updateFuel(fuel.current, fuel.max);
+    if (this.shipId) {
+      const fuel = this.world.getComponent<Fuel>(this.shipId, 'fuel');
+      if (fuel) {
+        this.hud.updateFuel(fuel.current, fuel.max);
+      }
+    }
   }
+
+
 
   private showPasswordGame(): void {
     this.passwordCracker.show({
@@ -476,7 +596,17 @@ export class ISSScene implements Scene {
     this.quizUI.dispose();
     this.hud.dispose();
     this.dialogueManager.dispose();
-    this.gameOverUI.dispose();
+    // Hide gameOverUI if showing (don't dispose - it's shared across scenes)
+    if (this.gameOverUI.isShowing()) {
+      this.gameOverUI.hide();
+    }
+    // Clean up asteroid entities
+    for (const entityId of this.asteroidEntities.values()) {
+      this.world.removeEntity(entityId);
+    }
+    this.asteroidEntities.clear();
+    this.asteroidNodes.clear();
+    
     if (this.shipId) {
       this.world.removeEntity(this.shipId);
     }

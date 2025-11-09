@@ -47,6 +47,10 @@ export class Dialog {
     }
   }
 
+  isShowing(): boolean {
+    return this.overlay.parentNode !== null;
+  }
+
   dispose(): void {
     this.hide();
   }
