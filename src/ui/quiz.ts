@@ -4,6 +4,7 @@
 import { Dialog } from './dialog.js';
 import { createButton } from './buttons.js';
 import type { EventBus } from '../engine/events.js';
+import { EventTopics } from '../engine/events/topics.js';
 
 export interface QuizQuestion {
   question: string;
@@ -106,7 +107,9 @@ export class QuizUI {
 
     let correctCount = 0;
     for (let i = 0; i < this.quizData.questions.length; i++) {
-      if (this.selectedAnswers[i] === this.quizData.questions[i].correct) {
+      const selectedAnswer = this.selectedAnswers[i];
+      const question = this.quizData.questions[i];
+      if (selectedAnswer !== undefined && question && selectedAnswer === question.correct) {
         correctCount++;
       }
     }
@@ -124,7 +127,7 @@ export class QuizUI {
       html += '<p style="color: #00ff00; margin-bottom: 16px;">Congratulations! You passed!</p>';
       const closeBtn = createButton('Continue', () => {
         this.dialog.hide();
-        this.eventBus.emit('quiz:passed', { quizId: this.quizData!.id });
+        this.eventBus.emit(EventTopics.QUIZ_PASSED, { quizId: this.quizData!.id });
       });
       html = `<div>${html}</div>`;
       this.dialog.show(html);
@@ -139,7 +142,7 @@ export class QuizUI {
       html = `<div>${html}</div>`;
       this.dialog.show(html);
       this.dialog.content.appendChild(retryBtn);
-      this.eventBus.emit('quiz:failed', { quizId: this.quizData.id });
+      this.eventBus.emit(EventTopics.QUIZ_FAILED, { quizId: this.quizData.id });
     }
   }
 

@@ -46,7 +46,7 @@ function init(): void {
   const rotationSystem = new RotationSystem();
 
   // Create game loop
-  const loop = new GameLoop(sceneManager, world, eventBus);
+  const loop = new GameLoop(sceneManager, world);
   loop.registerSystem(movementSystem);
   loop.registerSystem(fuelSystem);
   loop.registerSystem(rotationSystem);

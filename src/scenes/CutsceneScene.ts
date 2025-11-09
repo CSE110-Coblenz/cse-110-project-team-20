@@ -12,7 +12,6 @@ export class CutsceneScene implements Scene {
   private sceneManager: SceneManager;
   private stage: RenderStage;
   private saveRepository: SaveRepository;
-  private gameOverUI: GameOverUI;
   private shipSprite: Konva.Rect | null = null;
   private tween: Konva.Tween | null = null;
   private completed = false;
@@ -21,12 +20,11 @@ export class CutsceneScene implements Scene {
     sceneManager: SceneManager,
     stage: RenderStage,
     saveRepository: SaveRepository,
-    gameOverUI: GameOverUI
+    _gameOverUI: GameOverUI
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
     this.saveRepository = saveRepository;
-    this.gameOverUI = gameOverUI;
   }
 
   init(): void {

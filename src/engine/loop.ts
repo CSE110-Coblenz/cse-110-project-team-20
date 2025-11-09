@@ -4,12 +4,8 @@
 import { now } from './time.js';
 import { CONFIG } from '../config.js';
 import type { SceneManager } from './sceneManager.js';
-import type { EventBus } from './events.js';
 import type { World } from './ecs/world.js';
-
-export interface System {
-  update(dt: number, world: World): void;
-}
+import type { System } from './ecs/types.js';
 
 export class GameLoop {
   private sceneManager: SceneManager;
@@ -21,7 +17,7 @@ export class GameLoop {
   private readonly fixedStep = CONFIG.FIXED_TIMESTEP;
   private readonly maxFrameTime = CONFIG.MAX_FRAME_TIME;
 
-  constructor(sceneManager: SceneManager, world: World, _eventBus: EventBus) {
+  constructor(sceneManager: SceneManager, world: World) {
     this.sceneManager = sceneManager;
     this.world = world;
     // Systems will be registered separately

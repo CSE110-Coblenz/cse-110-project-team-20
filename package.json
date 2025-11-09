@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "test": "vitest",
+    "test": "vitest run",
     "lint": "eslint src --ext .ts",
-    "format": "prettier --write \"src/**/*.{ts,json}\""
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,json}\"",
+    "preview": "vite preview"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",

@@ -2,7 +2,7 @@
  * Player Input System - handles keyboard input and sets velocity for player-controlled entities
  */
 import type { World } from '../world.js';
-import type { System } from '../../loop.js';
+import type { System } from '../types.js';
 import type { Velocity } from '../components/velocity.js';
 import type { Keyboard } from '../../../input/keyboard.js';
 
@@ -46,7 +46,7 @@ export class PlayerInputSystem implements System {
     this.conditionCheck = condition;
   }
 
-  update(dt: number, world: World): void {
+  update(_dt: number, world: World): void {
     if (this.playerEntityId === null || !this.enabled) return;
     
     // Check condition if set

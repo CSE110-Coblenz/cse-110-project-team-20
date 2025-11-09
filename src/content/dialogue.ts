@@ -58,8 +58,11 @@ export class DialogueManager {
     this.currentSequence = sequence;
     this.currentIndex = 0;
     this.onCompleteCallback = onComplete || null;
-    this.showDialogue(this.currentSequence[0]);
-    this.startMouthAnimation();
+    const firstDialogue = this.currentSequence[0];
+    if (firstDialogue) {
+      this.showDialogue(firstDialogue);
+      this.startMouthAnimation();
+    }
   }
 
   /**
@@ -165,7 +168,10 @@ export class DialogueManager {
       }
     } else {
       // Show next dialogue
-      this.showDialogue(this.currentSequence[this.currentIndex]);
+      const nextDialogue = this.currentSequence[this.currentIndex];
+      if (nextDialogue) {
+        this.showDialogue(nextDialogue);
+      }
     }
   }
 

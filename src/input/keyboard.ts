@@ -16,13 +16,18 @@ export class Keyboard {
     right: false,
   };
 
+  private boundKeyDown: (e: KeyboardEvent) => void;
+  private boundKeyUp: (e: KeyboardEvent) => void;
+
   constructor() {
+    this.boundKeyDown = this.handleKeyDown.bind(this);
+    this.boundKeyUp = this.handleKeyUp.bind(this);
     this.setupListeners();
   }
 
   private setupListeners(): void {
-    window.addEventListener('keydown', this.handleKeyDown.bind(this));
-    window.addEventListener('keyup', this.handleKeyUp.bind(this));
+    window.addEventListener('keydown', this.boundKeyDown);
+    window.addEventListener('keyup', this.boundKeyUp);
   }
 
   private handleKeyDown(event: KeyboardEvent): void {
@@ -72,12 +77,12 @@ export class Keyboard {
   }
 
   getState(): KeyboardState {
-    return { ...this.state };
+    return this.state;
   }
 
   dispose(): void {
-    window.removeEventListener('keydown', this.handleKeyDown.bind(this));
-    window.removeEventListener('keyup', this.handleKeyUp.bind(this));
+    window.removeEventListener('keydown', this.boundKeyDown);
+    window.removeEventListener('keyup', this.boundKeyUp);
   }
 }
 

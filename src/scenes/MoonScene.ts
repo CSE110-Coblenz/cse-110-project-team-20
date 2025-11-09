@@ -16,13 +16,11 @@ interface Fact {
 export class MoonScene implements Scene {
   private stage: RenderStage;
   private saveRepository: SaveRepository;
-  private gameOverUI: GameOverUI;
   private uiContainer: HTMLDivElement | null = null;
 
-  constructor(stage: RenderStage, saveRepository: SaveRepository, gameOverUI: GameOverUI) {
+  constructor(stage: RenderStage, saveRepository: SaveRepository, _gameOverUI: GameOverUI) {
     this.stage = stage;
     this.saveRepository = saveRepository;
-    this.gameOverUI = gameOverUI;
   }
 
   init(): void {

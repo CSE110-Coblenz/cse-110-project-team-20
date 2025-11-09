@@ -2,6 +2,7 @@
  * SaveRepository - versioned localStorage persistence
  */
 import type { EventBus } from '../engine/events.js';
+import { EventTopics } from '../engine/events/topics.js';
 
 export interface SaveData {
   version: string;
@@ -54,7 +55,7 @@ export class SaveRepository {
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      this.eventBus.emit('save:updated');
+      this.eventBus.emit(EventTopics.SAVE_UPDATED);
     } catch (error) {
       console.error('Failed to save data:', error);
     }
@@ -68,7 +69,7 @@ export class SaveRepository {
   clear(): void {
     try {
       localStorage.removeItem(STORAGE_KEY);
-      this.eventBus.emit('save:updated');
+      this.eventBus.emit(EventTopics.SAVE_UPDATED);
     } catch (error) {
       console.error('Failed to clear save data:', error);
     }
