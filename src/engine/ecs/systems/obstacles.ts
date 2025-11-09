@@ -11,7 +11,6 @@ import type { Position } from '../components/position.js';
 import type { Fuel } from '../components/fuel.js';
 import type { Velocity } from '../components/velocity.js';
 import { createShipBoundingBox, checkShipAsteroidCollision } from '../../utils/collision.js';
-import { CONFIG } from '../../../config.js';
 
 export interface Obstacle {
   id: string;
@@ -30,6 +29,17 @@ export class ObstaclesSystem implements System {
   private stageWidth: number = 0;
   private stageHeight: number = 0;
   private onKnockbackCallback: (() => void) | null = null; // Callback when knockback occurs
+
+  /**
+   * Calculate asteroid center position - used by both visual rendering and collision detection
+   * This ensures they always match exactly
+   */
+  calculateAsteroidCenter(obstaclePos: { x: number; y: number }, obstacle: Obstacle): { x: number; y: number; radius: number } {
+    const centerX = obstaclePos.x + (obstacle.offsetX || 0) + obstacle.width / 2;
+    const centerY = obstaclePos.y + (obstacle.offsetY || 0) + obstacle.height / 2;
+    const radius = Math.min(obstacle.width, obstacle.height) / 2;
+    return { x: centerX, y: centerY, radius };
+  }
 
   /**
    * Set stage dimensions for boundary wrapping
@@ -101,52 +111,33 @@ export class ObstaclesSystem implements System {
         const obstaclePos = world.getComponent<Position>(obstacle.entityId, 'position');
         if (!obstaclePos) continue;
 
-        // Apply offset if present (to account for image borders)
-        const hitboxX = obstaclePos.x + (obstacle.offsetX || 0);
-        const hitboxY = obstaclePos.y + (obstacle.offsetY || 0);
-
-        // Use circular collision for asteroids (more accurate for round objects)
-        // Calculate asteroid center and radius
-        const asteroidCenterX = hitboxX + obstacle.width / 2;
-        const asteroidCenterY = hitboxY + obstacle.height / 2;
-        const asteroidRadius = Math.min(obstacle.width, obstacle.height) / 2; // Use smaller dimension for radius
+        // Calculate asteroid center using shared function - ensures visual and collision match exactly
+        const asteroidInfo = this.calculateAsteroidCenter(obstaclePos, obstacle);
+        const asteroidCenterX = asteroidInfo.x;
+        const asteroidCenterY = asteroidInfo.y;
+        const asteroidRadius = asteroidInfo.radius;
         
         // Check collision using hybrid approach: ship (box) vs asteroid (circle)
         const shipBox = createShipBoundingBox(position.x, position.y);
         
-        // Detailed debug logging to diagnose collision mismatch
-        if (CONFIG.DEBUG_HITBOX) {
-          const shipCenterX = shipBox.x + shipBox.width / 2;
-          const shipCenterY = shipBox.y + shipBox.height / 2;
-          const distance = Math.sqrt(
-            Math.pow(asteroidCenterX - shipCenterX, 2) + 
-            Math.pow(asteroidCenterY - shipCenterY, 2)
-          );
-          
-          console.log('Collision check:', {
-            shipEntityPos: { x: position.x, y: position.y },
-            shipBox: { 
-              x: shipBox.x, 
-              y: shipBox.y, 
-              w: shipBox.width, 
-              h: shipBox.height,
-              centerX: shipCenterX,
-              centerY: shipCenterY
-            },
-            asteroid: { 
-              entityPos: { x: obstaclePos.x, y: obstaclePos.y },
-              hitboxOffset: { x: obstacle.offsetX || 0, y: obstacle.offsetY || 0 },
-              hitboxSize: { w: obstacle.width, h: obstacle.height },
-              centerX: asteroidCenterX, 
-              centerY: asteroidCenterY, 
-              radius: asteroidRadius 
-            },
-            distance: distance,
-            radius: asteroidRadius,
-            wouldCollide: distance < asteroidRadius,
-            obstacleId: obstacle.id
-          });
+        // Quick distance check to skip asteroids that are clearly too far away
+        // This is an optimization for early rejection (skip distant asteroids)
+        // Use a tighter buffer to prevent false positives
+        const shipCenterX = shipBox.x + shipBox.width / 2;
+        const shipCenterY = shipBox.y + shipBox.height / 2;
+        const shipMaxRadius = Math.max(shipBox.width, shipBox.height) / 2;
+        const maxDistance = asteroidRadius + shipMaxRadius + 10; // Small 10px buffer only
+        const centerDistance = Math.sqrt(
+          Math.pow(asteroidCenterX - shipCenterX, 2) + 
+          Math.pow(asteroidCenterY - shipCenterY, 2)
+        );
+        
+        // Skip if too far away (early rejection)
+        // Only skip if centers are clearly too far apart
+        if (centerDistance > maxDistance) {
+          continue;
         }
+        
         
         if (checkShipAsteroidCollision(shipBox, asteroidCenterX, asteroidCenterY, asteroidRadius)) {
           // Collision detected - drain fuel

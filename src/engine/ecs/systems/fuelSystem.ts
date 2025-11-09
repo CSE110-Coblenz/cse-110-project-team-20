@@ -48,7 +48,6 @@ export class FuelSystem implements System {
       // Check if fuel is empty (whether moving or not) and emit event once
       if (fuel.current <= 0 && !this.fuelEmptyEmitted.has(entityId)) {
         this.fuelEmptyEmitted.add(entityId);
-        console.log('Fuel empty! Emitting fuel:empty event for entity', entityId);
         this.eventBus.emit(EventTopics.FUEL_EMPTY);
       } else if (fuel.current > 0) {
         // If fuel is restored and entity is not moving, reset the flag

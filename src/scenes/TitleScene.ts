@@ -71,11 +71,11 @@ export class TitleScene implements Scene {
 
     // Settings and Exit stubs
     const settingsButton = createButton('Settings', () => {
-      console.log('Settings (stub)');
+      // Settings functionality (stub)
     });
 
     const exitButton = createButton('Exit', () => {
-      console.log('Exit (stub)');
+      // Exit functionality (stub)
     });
 
     this.uiContainer.appendChild(this.startButton);

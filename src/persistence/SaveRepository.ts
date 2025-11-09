@@ -33,14 +33,12 @@ export class SaveRepository {
 
       // Version migration logic here if needed
       if (data.version !== CURRENT_VERSION) {
-        console.warn(`Save version mismatch: ${data.version} vs ${CURRENT_VERSION}`);
         // For MVP, just reset
         return { version: CURRENT_VERSION };
       }
 
       return data;
     } catch (error) {
-      console.error('Failed to load save data:', error);
       return { version: CURRENT_VERSION };
     }
   }
@@ -57,7 +55,7 @@ export class SaveRepository {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       this.eventBus.emit(EventTopics.SAVE_UPDATED);
     } catch (error) {
-      console.error('Failed to save data:', error);
+      // Failed to save data
     }
   }
 
@@ -71,7 +69,7 @@ export class SaveRepository {
       localStorage.removeItem(STORAGE_KEY);
       this.eventBus.emit(EventTopics.SAVE_UPDATED);
     } catch (error) {
-      console.error('Failed to clear save data:', error);
+      // Failed to clear save data
     }
   }
 

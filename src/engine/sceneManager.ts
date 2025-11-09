@@ -27,7 +27,6 @@ export class SceneManager {
   transitionTo(name: string): void {
     const factory = this.sceneMap.get(name);
     if (!factory) {
-      console.error(`Scene "${name}" not found`);
       return;
     }
 

@@ -12,7 +12,7 @@ export class RotationSystem implements System {
    * Ship image faces up by default (0° = up)
    * Rotation mapping: Right = 90°, Down = 180°, Left = 270°, Up = 0°
    */
-  update(dt: number, world: World): void {
+  update(_dt: number, world: World): void {
     world.forEachEntity(['position', 'velocity'], (entityId) => {
       const position = world.getComponent<Position>(entityId, 'position')!;
       const velocity = world.getComponent<Velocity>(entityId, 'velocity')!;

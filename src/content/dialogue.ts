@@ -14,22 +14,20 @@ export interface DialogueSequence {
 }
 
 export class DialogueManager {
-  private container: HTMLDivElement | null = null;
+  private container: HTMLDivElement | null = null; // Created lazily when dialogue is shown
   private currentSequence: Dialogue[] = [];
   private currentIndex = 0;
-  private onCompleteCallback: (() => void) | null = null;
-  private neilImageMouthClosed: HTMLImageElement | null = null;
-  private neilImageMouthOpen: HTMLImageElement | null = null;
-  private currentNeilImage: HTMLImageElement | null = null;
-  private mouthAnimationTimer: number | null = null;
+  private onCompleteCallback: (() => void) | null = null; // Optional callback
+  // These are always set in constructor, so they're never null after construction
+  private neilImageMouthClosed: HTMLImageElement;
+  private neilImageMouthOpen: HTMLImageElement;
+  private currentNeilImage: HTMLImageElement;
+  private mouthAnimationTimer: number | null = null; // null when animation is stopped
   private isMouthOpen = false;
 
   constructor() {
     // Preload Neil images for mouth animation
-    this.loadNeilImages();
-  }
-
-  private loadNeilImages(): void {
+    // These are always initialized, so they're never null
     this.neilImageMouthClosed = new Image();
     this.neilImageMouthClosed.src = '/neilPaws.png';
     this.neilImageMouthOpen = new Image();
@@ -51,7 +49,6 @@ export class DialogueManager {
     }
 
     if (!sequence || sequence.length === 0) {
-      console.warn(`Dialogue sequence "${sequenceKey}" not found`);
       return;
     }
 
@@ -79,7 +76,7 @@ export class DialogueManager {
         <div style="flex-shrink: 0;">
           <img 
             id="neil-character-image" 
-            src="${this.currentNeilImage?.src || '/neilPaws.png'}" 
+            src="${this.currentNeilImage.src}" 
             alt="${characterName}"
             style="width: 120px; height: 120px; object-fit: contain; border-radius: 8px; background: rgba(255, 255, 255, 0.1);"
           />
@@ -192,18 +189,17 @@ export class DialogueManager {
         this.isMouthOpen = !this.isMouthOpen;
         // Switch between mouth open/closed images
         // Ensure consistent sizing by maintaining fixed dimensions
-        if (this.neilImageMouthOpen && this.neilImageMouthClosed) {
-          const newSrc = this.isMouthOpen 
-            ? this.neilImageMouthOpen.src 
-            : this.neilImageMouthClosed.src;
-          
-          // Update src while maintaining size constraints
-          imgElement.src = newSrc;
-          // Ensure size stays consistent
-          imgElement.style.width = '120px';
-          imgElement.style.height = '120px';
-          imgElement.style.objectFit = 'contain';
-        }
+        // Images are always initialized in constructor, so no null check needed
+        const newSrc = this.isMouthOpen 
+          ? this.neilImageMouthOpen.src 
+          : this.neilImageMouthClosed.src;
+        
+        // Update src while maintaining size constraints
+        imgElement.src = newSrc;
+        // Ensure size stays consistent
+        imgElement.style.width = '120px';
+        imgElement.style.height = '120px';
+        imgElement.style.objectFit = 'contain';
       }
     }, 250);
   }

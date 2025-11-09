@@ -79,11 +79,12 @@ export function checkCircleCollision(
 }
 
 /**
- * Check collision between ship (box) and asteroid (circle)
+ * Check collision between ship (circle) and asteroid (circle)
  * 
- * Hybrid approach: Ship uses AABB, asteroid uses circle for more accurate detection
+ * Simplified: Both use circles for accurate center-to-center collision
+ * Ship is treated as a circle with radius = half of its larger dimension
  * 
- * @param shipBox Ship bounding box
+ * @param shipBox Ship bounding box (used to calculate center)
  * @param asteroidCenterX Asteroid center X
  * @param asteroidCenterY Asteroid center Y
  * @param asteroidRadius Asteroid radius
@@ -95,21 +96,20 @@ export function checkShipAsteroidCollision(
   asteroidCenterY: number,
   asteroidRadius: number
 ): boolean {
-  // Find the closest point on the ship box to the asteroid center
-  const closestX = Math.max(shipBox.x, Math.min(asteroidCenterX, shipBox.x + shipBox.width));
-  const closestY = Math.max(shipBox.y, Math.min(asteroidCenterY, shipBox.y + shipBox.height));
+  // Calculate ship center
+  const shipCenterX = shipBox.x + shipBox.width / 2;
+  const shipCenterY = shipBox.y + shipBox.height / 2;
   
-  // Calculate distance from closest point to asteroid center
-  const dx = asteroidCenterX - closestX;
-  const dy = asteroidCenterY - closestY;
+  // Calculate ship radius (use larger dimension for circle)
+  const shipRadius = Math.max(shipBox.width, shipBox.height) / 2;
+  
+  // Calculate distance between centers
+  const dx = asteroidCenterX - shipCenterX;
+  const dy = asteroidCenterY - shipCenterY;
   const distanceSquared = dx * dx + dy * dy;
   
-  // Add small safety margin (1 pixel) to prevent edge-case collisions
-  // Reduced from 2 since we're now using a larger hitbox (75% instead of 30%)
-  const safetyMargin = 1;
-  const effectiveRadius = Math.max(0, asteroidRadius - safetyMargin);
-  
-  // Check if distance is less than effective asteroid radius (collision)
-  return distanceSquared < (effectiveRadius * effectiveRadius);
+  // Check if distance is less than sum of radii (collision)
+  const combinedRadius = asteroidRadius + shipRadius;
+  return distanceSquared < (combinedRadius * combinedRadius);
 }
 

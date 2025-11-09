@@ -13,7 +13,6 @@ export class NameScene implements Scene {
   private sceneManager: SceneManager;
   private stage: RenderStage;
   private saveRepository: SaveRepository;
-  private gameOverUI: GameOverUI;
   private uiContainer: HTMLDivElement | null = null;
   private input: HTMLInputElement | null = null;
   private submitButton: HTMLButtonElement | null = null;
@@ -22,12 +21,11 @@ export class NameScene implements Scene {
     sceneManager: SceneManager,
     stage: RenderStage,
     saveRepository: SaveRepository,
-    gameOverUI: GameOverUI
+    _gameOverUI: GameOverUI
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
     this.saveRepository = saveRepository;
-    this.gameOverUI = gameOverUI;
   }
 
   init(): void {

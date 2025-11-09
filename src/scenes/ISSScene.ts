@@ -172,7 +172,6 @@ export class ISSScene implements Scene {
 
     // Listen for fuel empty
     this.eventBus.on(EventTopics.FUEL_EMPTY, () => {
-      console.log('Fuel empty event received');
       // Stop movement when fuel is empty
       if (this.shipId) {
         const velocity = this.world.getComponent<Velocity>(this.shipId, 'velocity');
@@ -182,7 +181,6 @@ export class ISSScene implements Scene {
         }
       }
       // Show fuel empty dialog
-      console.log('Showing fuel empty dialog');
       this.showFuelEmptyDialog();
     });
 
@@ -314,7 +312,6 @@ export class ISSScene implements Scene {
       this.stage.backgroundLayer.batchDraw();
     };
     issImg.onerror = () => {
-      console.error('Failed to load ISS image:', '/iss-bg.png');
       // Fallback: draw a placeholder rectangle in top right
       const placeholder = new Konva.Rect({
         x: this.stage.getWidth() - 200 - 90,
@@ -338,12 +335,11 @@ export class ISSScene implements Scene {
    */
   private createObstacles(): void {
     // Create 3-4 obstacles between bottom left (start) and top right (ISS)
-    // Using simple circles for testing - will add images back later
     const obstacles = [
-      { x: 300, y: this.stage.getHeight() - 200, width: 40, height: 40 },
-      { x: 500, y: 400, width: 50, height: 50 },
-      { x: 700, y: 200, width: 45, height: 45 },
-      { x: 900, y: 300, width: 40, height: 40 },
+      { x: 300, y: this.stage.getHeight() - 200, width: 60, height: 60 },
+      { x: 500, y: 400, width: 70, height: 70 },
+      { x: 700, y: 200, width: 65, height: 65 },
+      { x: 900, y: 300, width: 60, height: 60 },
     ];
 
     obstacles.forEach((obstacle, index) => {
@@ -378,47 +374,63 @@ export class ISSScene implements Scene {
         offsetY: hitboxOffsetY,
       });
       
-      // Create simple circle for visual representation
-      // The circle size matches the hitbox so we can see exactly where collisions occur
-      // Circle center = obstacle position + hitbox offset + hitbox center
-      const asteroidCenterX = obstacle.x + hitboxOffsetX + hitboxWidth / 2;
-      const asteroidCenterY = obstacle.y + hitboxOffsetY + hitboxHeight / 2;
+      // Calculate collision center (what collision detection uses)
+      const asteroidInfo = this.obstaclesSystem.calculateAsteroidCenter(
+        { x: obstacle.x, y: obstacle.y },
+        this.obstaclesSystem.getObstacle(obstacleId)!
+      );
       
-      // Make sure the circle radius matches the collision detection radius exactly
-      // Collision uses: Math.min(obstacle.width, obstacle.height) / 2
-      // obstacle.width/height are hitboxWidth/hitboxHeight
-      // Use the same calculation as collision detection
-      const collisionRadius = Math.min(hitboxWidth, hitboxHeight) / 2;
-      
-      // The circle radius should match the collision detection radius exactly
-      // This is what collision detection uses in obstacles.ts line 112
-      const visualRadius = collisionRadius;
-      
-      const asteroidCircle = new Konva.Circle({
-        x: asteroidCenterX,
-        y: asteroidCenterY,
-        radius: visualRadius, // Circle matches collision detection radius exactly
-        fill: '#ff6b6b',
-        stroke: '#ff4444',
-        strokeWidth: 2,
-        opacity: 0.8,
-      });
-      
-      this.asteroidNodes.set(obstacleId, asteroidCircle);
-      this.stage.backgroundLayer.add(asteroidCircle);
-      
-      // Debug logging
-      if (CONFIG.DEBUG_HITBOX) {
-        console.log(`Asteroid ${obstacleId}:`, {
-          position: { x: obstacle.x, y: obstacle.y },
-          obstacleSize: { w: obstacle.width, h: obstacle.height },
-          hitboxSize: { w: hitboxWidth, h: hitboxHeight },
-          hitboxRadius: collisionRadius,
-          collisionRadius: collisionRadius, // Same as collision detection uses
-          hitboxOffset: { x: hitboxOffsetX, y: hitboxOffsetY },
-          center: { x: asteroidCenterX, y: asteroidCenterY },
+      // Load asteroid image
+      const asteroidImg = new Image();
+      asteroidImg.onload = () => {
+        // Calculate image dimensions maintaining aspect ratio
+        let imageWidth = obstacle.width;
+        let imageHeight = obstacle.height;
+        
+        if (asteroidImg.width && asteroidImg.height) {
+          const aspectRatio = asteroidImg.width / asteroidImg.height;
+          if (aspectRatio > 1) {
+            // Image is wider - fit to width
+            imageHeight = imageWidth / aspectRatio;
+          } else {
+            // Image is taller - fit to height
+            imageWidth = imageHeight * aspectRatio;
+          }
+        }
+        
+        // Position image so its center matches collision center
+        // Image top-left = collision center - imageSize/2
+        const asteroidNode = new Konva.Image({
+          x: asteroidInfo.x - imageWidth / 2,
+          y: asteroidInfo.y - imageHeight / 2,
+          image: asteroidImg,
+          width: imageWidth,
+          height: imageHeight,
+          opacity: 0.9,
         });
-      }
+        
+        this.asteroidNodes.set(obstacleId, asteroidNode);
+        this.stage.backgroundLayer.add(asteroidNode);
+        this.stage.backgroundLayer.batchDraw();
+      };
+      
+      asteroidImg.onerror = () => {
+        console.error('Failed to load asteroid image:', '/asteroid-obstacle.png');
+        // Fallback to circle
+        const asteroidCircle = new Konva.Circle({
+          x: asteroidInfo.x,
+          y: asteroidInfo.y,
+          radius: asteroidInfo.radius,
+          fill: '#ff6b6b',
+          stroke: '#ff4444',
+          strokeWidth: 2,
+          opacity: 0.8,
+        });
+        this.asteroidNodes.set(obstacleId, asteroidCircle);
+        this.stage.backgroundLayer.add(asteroidCircle);
+      };
+      
+      asteroidImg.src = '/asteroid-obstacle.png';
     });
     
     this.stage.backgroundLayer.batchDraw();
@@ -437,7 +449,6 @@ export class ISSScene implements Scene {
    * Show fuel empty dialog with restart option
    */
   private showFuelEmptyDialog(): void {
-    console.log('showFuelEmptyDialog called, gameOverUI:', this.gameOverUI);
     this.gameOverUI.show({
       title: 'Oh no! Out of fuel',
       message: 'Your spacecraft has run out of fuel. Don\'t worry, you can restart and try again!',
@@ -517,35 +528,21 @@ export class ISSScene implements Scene {
       if (position && asteroidNode) {
         const obstacle = this.obstaclesSystem.getObstacle(obstacleId);
         if (obstacle) {
+          // Calculate collision center (same as collision detection)
+          const asteroidInfo = this.obstaclesSystem.calculateAsteroidCenter(position, obstacle);
+          
           if (asteroidNode instanceof Konva.Circle) {
-            // Circle center = entity position + hitbox offset + hitbox center
-            // This MUST match the collision detection calculation in obstacles.ts
-            const centerX = position.x + (obstacle.offsetX || 0) + obstacle.width / 2;
-            const centerY = position.y + (obstacle.offsetY || 0) + obstacle.height / 2;
-            asteroidNode.x(centerX);
-            asteroidNode.y(centerY);
-            
-            // Debug: Log visual position to compare with collision detection
-            if (CONFIG.DEBUG_HITBOX && obstacleId === 'obstacle-0') {
-              const visualRadius = asteroidNode.radius();
-              console.log('Visual asteroid position:', {
-                obstacleId,
-                entityPos: { x: position.x, y: position.y },
-                hitboxOffset: { x: obstacle.offsetX || 0, y: obstacle.offsetY || 0 },
-                hitboxSize: { w: obstacle.width, h: obstacle.height },
-                visualCenter: { x: centerX, y: centerY },
-                visualRadius: visualRadius,
-                // Compare with collision: hitboxX = position.x + offsetX, centerX = hitboxX + width/2
-                expectedCollisionCenter: {
-                  x: position.x + (obstacle.offsetX || 0) + obstacle.width / 2,
-                  y: position.y + (obstacle.offsetY || 0) + obstacle.height / 2
-                }
-              });
-            }
+            // Fallback circle - center matches collision center
+            asteroidNode.x(asteroidInfo.x);
+            asteroidNode.y(asteroidInfo.y);
+            asteroidNode.radius(asteroidInfo.radius);
           } else if (asteroidNode instanceof Konva.Image) {
-            // Image uses top-left positioning
-            asteroidNode.x(position.x);
-            asteroidNode.y(position.y);
+            // Position image so its center matches collision center
+            // Image top-left = collision center - imageSize/2
+            const imageWidth = asteroidNode.width();
+            const imageHeight = asteroidNode.height();
+            asteroidNode.x(asteroidInfo.x - imageWidth / 2);
+            asteroidNode.y(asteroidInfo.y - imageHeight / 2);
           }
         }
       }

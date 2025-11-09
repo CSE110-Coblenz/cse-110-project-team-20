@@ -30,8 +30,5 @@ export const CONFIG = {
   // 0.75 means the hitbox is 75% of the image, leaving 12.5% border on each side
   // Adjust this value if collisions feel too early (lower) or too hard to trigger (raise)
   KNOCKBACK_FORCE: 300, // Pixels per second - how fast ship is pushed back on collision
-  
-  // Debug settings
-  DEBUG_HITBOX: true, // Set to true to visualize collision boxes (green rectangles)
 } as const;
 

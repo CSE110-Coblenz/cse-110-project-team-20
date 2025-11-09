@@ -21,7 +21,6 @@ function init(): void {
   // Get container
   const container = document.getElementById('game-container');
   if (!container) {
-    console.error('Game container not found');
     return;
   }
 
