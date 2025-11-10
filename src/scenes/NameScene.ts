@@ -15,6 +15,8 @@ export class NameScene implements Scene {
   private uiContainer: HTMLDivElement | null = null;
   private input: HTMLInputElement | null = null;
   private submitButton: HTMLButtonElement | null = null;
+  private welcomeText: Konva.Text | null = null;
+  private promptText: Konva.Text | null = null;
 
   constructor(
     sceneManager: SceneManager,
@@ -31,7 +33,7 @@ export class NameScene implements Scene {
     this.stage.backgroundLayer.destroyChildren();
 
     // Add prompt text
-    const prompt = new Konva.Text({
+    this.promptText = new Konva.Text({
       text: 'Enter Your Name',
       x: this.stage.getWidth() / 2,
       y: this.stage.getHeight() / 2 - 120,
@@ -40,8 +42,8 @@ export class NameScene implements Scene {
       fill: '#ffffff',
       align: 'center',
     });
-    prompt.offsetX(prompt.width() / 2);
-    this.stage.backgroundLayer.add(prompt);
+    this.promptText.offsetX(this.promptText.width() / 2);
+    this.stage.backgroundLayer.add(this.promptText);
     this.stage.backgroundLayer.batchDraw();
 
     // Create UI container
@@ -99,8 +101,44 @@ export class NameScene implements Scene {
     }
 
     this.saveRepository.setPlayerName(name);
-    this.sceneManager.transitionTo('iss');
+    if (this.input) this.input.disabled = true;
+    if (this.submitButton) this.submitButton.disabled = true;
+
+    { 
+  // remove the HTML UI so "Enter Your Name" controls is gone
+  if (this.uiContainer && this.uiContainer.parentNode) {
+    this.uiContainer.parentNode.removeChild(this.uiContainer);
   }
+  this.uiContainer = null;
+  this.input = null;
+  this.submitButton = null;
+  if (this.promptText) {
+    this.promptText.destroy();
+    this.promptText = null;
+  }
+
+}
+
+    // show welcome message
+    this.welcomeText = new Konva.Text({
+      text: `Welcome ${name}`,
+      x: this.stage.getWidth() / 2,
+      y: this.stage.getHeight() / 2 - 160,
+      fontSize: 28,
+      fontFamily: 'Arial',
+      fill: '#ffffff',
+      align: 'center',
+    });
+    this.welcomeText.offsetX(this.welcomeText.width() / 2);
+    this.stage.backgroundLayer.add(this.welcomeText);
+    this.stage.backgroundLayer.batchDraw();
+
+    // brief delay then transition
+    setTimeout(() => {
+      this.sceneManager.transitionTo('iss');
+    }, 1500);
+  }
+  
 
   update(_dt: number): void {
     // Static scene
@@ -109,6 +147,8 @@ export class NameScene implements Scene {
   render(): void {
     // Static scene
   }
+  
+
 
   dispose(): void {
     if (this.uiContainer && this.uiContainer.parentNode) {
