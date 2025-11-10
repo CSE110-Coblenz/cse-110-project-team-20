@@ -34,7 +34,7 @@ export class NameScene implements Scene {
     const prompt = new Konva.Text({
       text: 'Enter Your Name',
       x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2 - 80,
+      y: this.stage.getHeight() / 2 - 120,
       fontSize: 32,
       fontFamily: 'Arial',
       fill: '#ffffff',
