@@ -27,26 +27,28 @@ export function drawEarth(x: number, y: number, radius: number): Konva.Group {
         return new Konva.Rect({x, y, width, height, fill: color});
     }
 
-    // All outline rectangles defined in one config list
+    // Outline rectangles in one quadrant to be mirrored
     const outlineRects = [
-    [-130, -300, 260, 40],
-    [-230, -270, 100, 55],
-    [-270, -230, 60, 120],
-    [130, -270, 100, 55],
-    [210, -230, 60, 120],
-    [-130, 260, 260, 40],
-    [-230, 215, 100, 55],
-    [-270, 120, 60, 120],
-    [120, 215, 100, 55],
-    [210, 130, 60, 120],
-    [-300, -130, 50, 260],
-    [270, -130, 50, 260],
+        [-130, -300, 130, 30],
+        [-200, -270, 90, 30],
+        [-230, -240, 50, 30],
+        [-260, -210, 50, 30],
+        [-280, -180, 40, 30],
+        [-290, -160, 30, 30],
+        [-300, -130, 30, 130]
     ];
 
-    // Convert the entries into Konva.Rect objects and add to group
-    outlineRects.forEach(([x, y, w, h]) => {
-    earthGroup.add(makePixelatedOutlineRect(x, y, w, h));
-    });
+    // Mirror the rectangles to create full outline
+    function addMirroredRects(group: Konva.Group, rects: number[][]) {
+        rects.forEach(([x, y, width, height]) => {
+            group.add(makePixelatedOutlineRect(x, y, width, height));
+            group.add(makePixelatedOutlineRect(-x - width, y, width, height));
+            group.add(makePixelatedOutlineRect(x, -y - height, width, height));
+            group.add(makePixelatedOutlineRect(-x - width, -y - height, width, height));
+        });
+    }
+
+    addMirroredRects(earthGroup, outlineRects);
     
     // Simple land shapes for Earth
     function makeLandRect(
@@ -60,29 +62,36 @@ export function drawEarth(x: number, y: number, radius: number): Konva.Group {
     }
 
     const land = [
-        [-150, -260, 170, 80],
-        [-210, -220, 120, 140],
-        [-250, -110, 60, 60],
-        [130, -220, 80, 80],
-        [-210, 70, 100, 150],
-        [-130, 110, 100, 150],
-        [-40, 180, 80, 80],
-        [200, -110, 80, 240],
-        [130, 100, 80, 115]
+        [-120, -270, 100, 100],
+        [-180, -250, 120, 130],
+        [-220, -210, 80, 100],
+        [-260, -180, 80, 50],
+        [-230, 160, 50, 50],
+        [-190, 150, 130, 90],
+        [-115, 180, 130, 90],
+        [-170, 80, 100, 90],
+        [50, -200, 80, 100],
+        [80, -150, 100, 80],
+        [120, -100, 80, 50],
+        [150, 110, 100, 80],
+        [130, 180, 80, 50],
+        [110, 230, 80, 20],
     ]
 
     land.forEach(([x, y, w, h]) => {
     earthGroup.add(makeLandRect(x, y, w, h));
     });
 
-    /*const floatAnimation = new Konva.Animation((frame) => {
-        const floatSpeed = 0.4; // pixels per second
-        const floatHeight = 5; // maximum float height
-        earthGroup.y(y - 30 + Math.sin(frame.time /floatSpeed) * floatHeight);
+    // Floating animation
+    const floatSpeed = 500;
+    const floatHeight = 10;
+
+    const floatAnimation = new Konva.Animation((frame) => {
+        const t = frame.time / floatSpeed;
+        earthGroup.y(y - 30 + Math.sin(t) * floatHeight);
      }, layer);
 
-     floatAnimation.start();
-    */
+    floatAnimation.start();
 
     return earthGroup;
 }
