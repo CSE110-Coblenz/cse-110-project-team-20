@@ -13,18 +13,13 @@ export class TitleScene implements Scene {
   private stage: RenderStage;
   private startButton: HTMLButtonElement | null = null;
   private uiContainer: HTMLDivElement | null = null;
-  private spaceBubbleSound: HTMLAudioElement;
 
   constructor(sceneManager: SceneManager, stage: RenderStage) {
     this.sceneManager = sceneManager;
     this.stage = stage;
-    this.spaceBubbleSound = new Audio('space-bubble.mp3');
-    this.spaceBubbleSound.volume = 0.5;
   }
 
   init(): void {
-    this.spaceBubbleSound.load();
-    
     // Clear layers
     this.stage.backgroundLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
@@ -82,25 +77,10 @@ export class TitleScene implements Scene {
 
     // Start button
     this.startButton = createButton('Start', () => {
-      this.spaceBubbleSound.currentTime = 0;
-      this.spaceBubbleSound.play();
       this.sceneManager.transitionTo('name');
     });
 
-    // Settings and Exit stubs
-    /**const settingsButton = createButton('Settings', () => {
-      console.log('Settings (stub)');
-    });
-
-    const exitButton = createButton('Exit', () => {
-      console.log('Exit (stub)');
-    });
-    */
-
     this.uiContainer.appendChild(this.startButton);
-    //this.uiContainer.appendChild(settingsButton);
-    //this.uiContainer.appendChild(exitButton);
-
     document.body.appendChild(this.uiContainer);
   }
 
@@ -120,4 +100,3 @@ export class TitleScene implements Scene {
     this.uiContainer = null;
   }
 }
-
