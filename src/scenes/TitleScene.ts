@@ -22,10 +22,6 @@ export class TitleScene implements Scene {
   }
 
   init(): void {
-    // Load sound
-    const startButtonSound = new Audio('/sweepSound.wav');
-    startButtonSound.volume = 0.8;
-
     // Clear layers
     this.stage.backgroundLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
@@ -86,8 +82,6 @@ export class TitleScene implements Scene {
 
     // Start button
     this.startButton = createButton('Start', () => {
-      startButtonSound.currentTime = 0;
-      startButtonSound.play();
       this.sceneManager.transitionTo('name');
     });
 
