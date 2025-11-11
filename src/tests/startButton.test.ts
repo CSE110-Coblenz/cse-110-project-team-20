@@ -9,6 +9,25 @@ describe('TitleScene', () => {
   let mockStage: RenderStage;
 
   beforeEach(() => {
+    (HTMLCanvasElement.prototype as any).getContext = vi.fn(() => ({
+      save: vi.fn(),
+      restore: vi.fn(),
+      scale: vi.fn(),
+      translate: vi.fn(),
+      rotate: vi.fn(),
+      beginPath: vi.fn(),
+      closePath: vi.fn(),
+      clearRect: vi.fn(),
+      fillRect: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
+      arc: vi.fn(),
+      rect: vi.fn(),
+      measureText: vi.fn(() => ({ width: 100 })),
+    } as unknown as CanvasRenderingContext2D));
+    
     // Mock SceneManager
     mockSceneManager = {
       transitionTo: vi.fn(),
