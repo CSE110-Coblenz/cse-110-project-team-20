@@ -1,5 +1,6 @@
 import Konva from 'konva';
 
+// Function to draw Earth at given position with pixel art style
 export function drawEarth(x: number, y: number, radius: number): Konva.Group {
     const earthGroup = new Konva.Group({
         x: x,
@@ -94,4 +95,18 @@ export function drawEarth(x: number, y: number, radius: number): Konva.Group {
     floatAnimation.start();
 
     return earthGroup;
+}
+
+// Function to add stars to a given layer
+export function addStars(layer: Konva.Layer, count: number, width: number, height: number) {
+    for (let i = 0; i < count; i++) {
+        const star = new Konva.Circle({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            radius: Math.random() * 1.5 + 0.5,
+            fill: 'white',
+            opacity: Math.random() * 0.8 + 0.2
+        });
+        layer.add(star);
+    }
 }

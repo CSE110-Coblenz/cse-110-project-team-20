@@ -7,6 +7,8 @@ import type { RenderStage } from '../render/stage.js';
 import Konva from 'konva';
 import { createButton } from '../ui/buttons.js';
 import { drawEarth } from '../render/earth.js';
+import { addStars } from '../render/earth.js';
+
 
 export class TitleScene implements Scene {
   private sceneManager: SceneManager;
@@ -20,11 +22,18 @@ export class TitleScene implements Scene {
   }
 
   init(): void {
+    // Load sound
+    const startButtonSound = new Audio('/sweepSound.wav');
+    startButtonSound.volume = 0.8;
+
     // Clear layers
     this.stage.backgroundLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
 
-    //Draw Earth background
+    // Add stars to background
+    addStars(this.stage.backgroundLayer, 100, this.stage.getWidth(), this.stage.getHeight());
+
+    // Draw Earth background
     const earth = drawEarth(
       this.stage.getWidth() / 2,
       this.stage.getHeight() / 2,
@@ -77,6 +86,8 @@ export class TitleScene implements Scene {
 
     // Start button
     this.startButton = createButton('Start', () => {
+      startButtonSound.currentTime = 0;
+      startButtonSound.play();
       this.sceneManager.transitionTo('name');
     });
 
