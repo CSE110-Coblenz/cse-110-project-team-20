@@ -36,7 +36,7 @@ export class PasswordCracker {
     this.dialog = new Dialog();
     this.eventBus = eventBus;
   }
-
+  
 
   //Generates the password from the puzzle text (all caps).
 
@@ -165,6 +165,7 @@ export class PasswordCracker {
   }
 
 
+
   private showResult(success: boolean): void {
     if (!this.options || !success) return;
 
@@ -178,6 +179,11 @@ export class PasswordCracker {
       this.dialog.hide();
     });
     this.dialog.content.appendChild(continueButton);
+  }
+
+
+  public isShowing() : boolean{
+    return this.dialog.isShowing()
   }
 
   public dispose(): void {

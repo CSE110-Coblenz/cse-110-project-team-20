@@ -31,6 +31,12 @@ export class Keyboard {
   }
 
   private handleKeyDown(event: KeyboardEvent): void {
+
+    const target = event.target as HTMLElement;
+    if(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')){
+      return;
+    }
+
     switch (event.key.toLowerCase()) {
       case 'w':
       case 'arrowup':

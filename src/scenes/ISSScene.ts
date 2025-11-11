@@ -148,6 +148,7 @@ export class ISSScene implements Scene {
              !this.dialogueManager.isShowing() && 
              !this.gameOverUI.isShowing() && 
              !this.quizUI.isShowing() &&
+             !this.passwordCracker.isShowing()
              now >= this.knockbackDisableUntil; // Allow movement only after knockback disable period ends
     });
     // Trigger will be added/updated in loadISS() after image loads with correct dimensions
@@ -521,6 +522,7 @@ export class ISSScene implements Scene {
     
     // Update triggers system (check refuel station)
     this.triggersSystem.update(dt, this.world);
+
 
     // Update player input (RotationSystem is handled by the game loop automatically)
     if (this.playerInputSystem) {

@@ -4,6 +4,7 @@
 export class Dialog {
   private overlay: HTMLDivElement;
   public readonly content: HTMLDivElement;
+  private showing : boolean = false
 
   constructor() {
     this.overlay = document.createElement('div');
