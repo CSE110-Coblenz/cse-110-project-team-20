@@ -6,8 +6,8 @@ import type { SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
 import Konva from 'konva';
 import { createButton } from '../ui/buttons.js';
-import { drawEarth } from '../render/earth.js';
-import { addStars } from '../render/earth.js';
+import { drawEarth } from '../render/titleSceneBackground.js';
+import { addStars } from '../render/titleSceneBackground.js';
 
 
 export class TitleScene implements Scene {

@@ -7,8 +7,6 @@ export function drawEarth(x: number, y: number, radius: number): Konva.Group {
         y: y - 30,
     });
 
-    const layer = new Konva.Layer();
-
     // Base blue circle for Earth
     const ocean = new Konva.Circle({
         radius,
@@ -42,12 +40,18 @@ export function drawEarth(x: number, y: number, radius: number): Konva.Group {
     // Mirror the rectangles to create full outline
     function addMirroredRects(group: Konva.Group, rects: number[][]) {
         rects.forEach(([x, y, width, height]) => {
-            group.add(makePixelatedOutlineRect(x, y, width, height));
-            group.add(makePixelatedOutlineRect(-x - width, y, width, height));
-            group.add(makePixelatedOutlineRect(x, -y - height, width, height));
-            group.add(makePixelatedOutlineRect(-x - width, -y - height, width, height));
+            const positions = [
+                [x, y],
+                [-x - width, y],
+                [x, -y - height],
+                [-x - width, -y - height]
+            ];
+
+            positions.forEach(([mx, my]) => {
+                group.add(makePixelatedOutlineRect(mx, my, width, height));
+            });
         });
-    }
+    };
 
     addMirroredRects(earthGroup, outlineRects);
     
@@ -90,7 +94,7 @@ export function drawEarth(x: number, y: number, radius: number): Konva.Group {
     const floatAnimation = new Konva.Animation((frame) => {
         const t = frame.time / floatSpeed;
         earthGroup.y(y - 30 + Math.sin(t) * floatHeight);
-     }, layer);
+     });
 
     floatAnimation.start();
 
