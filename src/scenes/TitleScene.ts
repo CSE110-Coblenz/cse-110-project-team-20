@@ -6,6 +6,9 @@ import type { SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
 import Konva from 'konva';
 import { createButton } from '../ui/buttons.js';
+import { drawEarth } from '../render/titleSceneBackground.js';
+import { addStars } from '../render/titleSceneBackground.js';
+
 
 export class TitleScene implements Scene {
   private sceneManager: SceneManager;
@@ -23,14 +26,28 @@ export class TitleScene implements Scene {
     this.stage.backgroundLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
 
+    // Add stars to background
+    addStars(this.stage.backgroundLayer, 100, this.stage.getWidth(), this.stage.getHeight());
+
+    // Draw Earth background
+    const earth = drawEarth(
+      this.stage.getWidth() / 2,
+      this.stage.getHeight() / 2,
+      300
+    );
+    this.stage.backgroundLayer.add(earth);
+    this.stage.backgroundLayer.batchDraw();
+
+
     // Add title text to background layer
     const title = new Konva.Text({
-      text: 'Space Game MVP',
+      text: 'Cat Space Agency',
       x: this.stage.getWidth() / 2,
       y: this.stage.getHeight() / 2 - 100,
       fontSize: 48,
-      fontFamily: 'Arial',
-      fill: '#ffffff',
+      fontFamily: 'Press Start 2P',
+      fontStyle: 'bold',
+      fill: '#ff914d',
       align: 'center',
     });
     title.offsetX(title.width() / 2);
@@ -38,10 +55,10 @@ export class TitleScene implements Scene {
     const subtitle = new Konva.Text({
       text: 'Educational Space Adventure',
       x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2 - 40,
+      y: this.stage.getHeight() / 2 - 20,
       fontSize: 24,
-      fontFamily: 'Arial',
-      fill: '#aaaaaa',
+      fontFamily: 'Press Start 2P',
+      fill: '#ffffff',
       align: 'center',
     });
     subtitle.offsetX(subtitle.width() / 2);
@@ -56,7 +73,7 @@ export class TitleScene implements Scene {
       position: fixed;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, 80%);
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -68,19 +85,7 @@ export class TitleScene implements Scene {
       this.sceneManager.transitionTo('name');
     });
 
-    // Settings and Exit stubs
-    const settingsButton = createButton('Settings', () => {
-      console.log('Settings (stub)');
-    });
-
-    const exitButton = createButton('Exit', () => {
-      console.log('Exit (stub)');
-    });
-
     this.uiContainer.appendChild(this.startButton);
-    this.uiContainer.appendChild(settingsButton);
-    this.uiContainer.appendChild(exitButton);
-
     document.body.appendChild(this.uiContainer);
   }
 
@@ -100,4 +105,3 @@ export class TitleScene implements Scene {
     this.uiContainer = null;
   }
 }
-
