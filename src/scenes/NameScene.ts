@@ -72,11 +72,12 @@ export class NameScene implements Scene {
       background: #2a2a3e;
       color: white;
       min-width: 300px;
+      font-family: 'Courier New', Courier, monospace;
     `;
 
     // Submit button
     this.submitButton = createButton('Continue', () => {
-      this.handleSubmit();
+      this.handleSubmit(); 
     });
 
     this.uiContainer.appendChild(this.input);

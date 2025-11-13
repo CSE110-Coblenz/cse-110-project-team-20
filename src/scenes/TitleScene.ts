@@ -27,9 +27,9 @@ export class TitleScene implements Scene {
     const title = new Konva.Text({
       text: 'Space Game MVP',
       x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2 - 100,
+      y: this.stage.getHeight() / 2 - 180,
       fontSize: 48,
-      fontFamily: 'Arial',
+      fontFamily: 'Courier New',
       fill: '#ffffff',
       align: 'center',
     });
@@ -38,9 +38,9 @@ export class TitleScene implements Scene {
     const subtitle = new Konva.Text({
       text: 'Educational Space Adventure',
       x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2 - 40,
+      y: this.stage.getHeight() / 2 - 120,
       fontSize: 24,
-      fontFamily: 'Arial',
+      fontFamily: 'Courier New',
       fill: '#aaaaaa',
       align: 'center',
     });
@@ -67,15 +67,19 @@ export class TitleScene implements Scene {
     this.startButton = createButton('Start', () => {
       this.sceneManager.transitionTo('name');
     });
+    this.startButton.style.marginBottom = '12px';
 
     // Settings and Exit stubs
     const settingsButton = createButton('Settings', () => {
       console.log('Settings (stub)');
     });
+    this.startButton.style.marginBottom = '12px';
 
     const exitButton = createButton('Exit', () => {
       console.log('Exit (stub)');
     });
+    
+    
 
     this.uiContainer.appendChild(this.startButton);
     this.uiContainer.appendChild(settingsButton);
