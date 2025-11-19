@@ -75,7 +75,7 @@ describe('PasswordCracker', () => {
         expect(eventSpy).toHaveBeenCalledWith('minigame:passed', { minigameId: 'test-pass' });
     });
 
-    it('should pass minigame when correct password', () => {
+    it('should fail minigame when incorrect password', () => {
         const eventSpy = vi.spyOn(eventBus, 'emit');
 
         (passwordCracker as any).options = { id: 'test-fail' };
