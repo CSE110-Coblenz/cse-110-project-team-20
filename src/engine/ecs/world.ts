@@ -18,7 +18,6 @@ export class World {
 
   addComponent<T extends Component>(entityId: EntityId, component: T): void {
     if (!this.entities.has(entityId)) {
-      console.warn(`Entity ${entityId} does not exist`);
       return;
     }
 
@@ -74,7 +73,9 @@ export class World {
     if (componentTypes.length === 0) return Array.from(this.entities);
 
     // Start with entities that have the first component type
-    const firstIndex = this.componentIndex.get(componentTypes[0]);
+    const firstType = componentTypes[0];
+    if (!firstType) return [];
+    const firstIndex = this.componentIndex.get(firstType);
     if (!firstIndex || firstIndex.size === 0) return [];
 
     const result: EntityId[] = [];
@@ -83,7 +84,8 @@ export class World {
     for (const entityId of firstIndex) {
       let hasAll = true;
       for (let i = 1; i < componentTypes.length; i++) {
-        if (!this.hasComponent(entityId, componentTypes[i])) {
+        const componentType = componentTypes[i];
+        if (!componentType || !this.hasComponent(entityId, componentType)) {
           hasAll = false;
           break;
         }

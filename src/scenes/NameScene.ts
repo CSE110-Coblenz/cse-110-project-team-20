@@ -5,6 +5,7 @@ import type { Scene } from '../engine/sceneManager.js';
 import type { SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
 import type { SaveRepository } from '../persistence/SaveRepository.js';
+import type { GameOverUI } from '../ui/gameOver.js';
 import Konva from 'konva';
 import { createButton } from '../ui/buttons.js';
 
@@ -15,13 +16,12 @@ export class NameScene implements Scene {
   private uiContainer: HTMLDivElement | null = null;
   private input: HTMLInputElement | null = null;
   private submitButton: HTMLButtonElement | null = null;
-  private welcomeText: Konva.Text | null = null;
-  private promptText: Konva.Text | null = null;
 
   constructor(
     sceneManager: SceneManager,
     stage: RenderStage,
-    saveRepository: SaveRepository
+    saveRepository: SaveRepository,
+    _gameOverUI: GameOverUI
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
@@ -33,17 +33,17 @@ export class NameScene implements Scene {
     this.stage.backgroundLayer.destroyChildren();
 
     // Add prompt text
-    this.promptText = new Konva.Text({
+    const prompt = new Konva.Text({
       text: 'Enter Your Name',
       x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2 - 120,
+      y: this.stage.getHeight() / 2 - 80,
       fontSize: 32,
       fontFamily: 'Arial',
       fill: '#ffffff',
       align: 'center',
     });
-    this.promptText.offsetX(this.promptText.width() / 2);
-    this.stage.backgroundLayer.add(this.promptText);
+    prompt.offsetX(prompt.width() / 2);
+    this.stage.backgroundLayer.add(prompt);
     this.stage.backgroundLayer.batchDraw();
 
     // Create UI container
@@ -72,12 +72,11 @@ export class NameScene implements Scene {
       background: #2a2a3e;
       color: white;
       min-width: 300px;
-      font-family: 'Courier New', Courier, monospace;
     `;
 
     // Submit button
     this.submitButton = createButton('Continue', () => {
-      this.handleSubmit(); 
+      this.handleSubmit();
     });
 
     this.uiContainer.appendChild(this.input);
@@ -102,44 +101,8 @@ export class NameScene implements Scene {
     }
 
     this.saveRepository.setPlayerName(name);
-    if (this.input) this.input.disabled = true;
-    if (this.submitButton) this.submitButton.disabled = true;
-
-    { 
-  // remove the HTML UI so "Enter Your Name" controls is gone
-  if (this.uiContainer && this.uiContainer.parentNode) {
-    this.uiContainer.parentNode.removeChild(this.uiContainer);
+    this.sceneManager.transitionTo('iss');
   }
-  this.uiContainer = null;
-  this.input = null;
-  this.submitButton = null;
-  if (this.promptText) {
-    this.promptText.destroy();
-    this.promptText = null;
-  }
-
-}
-
-    // show welcome message
-    this.welcomeText = new Konva.Text({
-      text: `Welcome ${name}`,
-      x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2 - 160,
-      fontSize: 28,
-      fontFamily: 'Arial',
-      fill: '#ffffff',
-      align: 'center',
-    });
-    this.welcomeText.offsetX(this.welcomeText.width() / 2);
-    this.stage.backgroundLayer.add(this.welcomeText);
-    this.stage.backgroundLayer.batchDraw();
-
-    // brief delay then transition
-    setTimeout(() => {
-      this.sceneManager.transitionTo('iss');
-    }, 1500);
-  }
-  
 
   update(_dt: number): void {
     // Static scene
@@ -148,8 +111,6 @@ export class NameScene implements Scene {
   render(): void {
     // Static scene
   }
-  
-
 
   dispose(): void {
     if (this.uiContainer && this.uiContainer.parentNode) {

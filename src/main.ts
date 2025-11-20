@@ -9,17 +9,18 @@ import { RenderStage } from './render/stage.js';
 import { SaveRepository } from './persistence/SaveRepository.js';
 import { MovementSystem } from './engine/ecs/systems/movement.js';
 import { FuelSystem } from './engine/ecs/systems/fuelSystem.js';
+import { RotationSystem } from './engine/ecs/systems/rotation.js';
 import { TitleScene } from './scenes/TitleScene.js';
 import { NameScene } from './scenes/NameScene.js';
 import { ISSScene } from './scenes/ISSScene.js';
 import { CutsceneScene } from './scenes/CutsceneScene.js';
 import { MoonScene } from './scenes/MoonScene.js';
+import { GameOverUI } from './ui/gameOver.js';
 
 function init(): void {
   // Get container
   const container = document.getElementById('game-container');
   if (!container) {
-    console.error('Game container not found');
     return;
   }
 
@@ -29,22 +30,25 @@ function init(): void {
   const stage = new RenderStage(container);
   const saveRepository = new SaveRepository(eventBus);
   const sceneManager = new SceneManager(eventBus);
+  const gameOverUI = new GameOverUI(); // Shared GameOverUI for all scenes
 
   // Register scenes
-  sceneManager.register('title', () => new TitleScene(sceneManager, stage));
-  sceneManager.register('name', () => new NameScene(sceneManager, stage, saveRepository));
-  sceneManager.register('iss', () => new ISSScene(sceneManager, stage, world, eventBus));
-  sceneManager.register('cutscene', () => new CutsceneScene(sceneManager, stage, saveRepository));
-  sceneManager.register('moon', () => new MoonScene(stage, saveRepository));
+  sceneManager.register('title', () => new TitleScene(sceneManager, stage, gameOverUI));
+  sceneManager.register('name', () => new NameScene(sceneManager, stage, saveRepository, gameOverUI));
+  sceneManager.register('iss', () => new ISSScene(sceneManager, stage, world, eventBus, saveRepository, gameOverUI));
+  sceneManager.register('cutscene', () => new CutsceneScene(sceneManager, stage, saveRepository, gameOverUI));
+  sceneManager.register('moon', () => new MoonScene(stage, saveRepository, gameOverUI));
 
   // Create and register systems
   const movementSystem = new MovementSystem();
   const fuelSystem = new FuelSystem(eventBus);
+  const rotationSystem = new RotationSystem();
 
   // Create game loop
-  const loop = new GameLoop(sceneManager, world, eventBus);
+  const loop = new GameLoop(sceneManager, world);
   loop.registerSystem(movementSystem);
   loop.registerSystem(fuelSystem);
+  loop.registerSystem(rotationSystem);
 
   // Start with title scene
   sceneManager.transitionTo('title');

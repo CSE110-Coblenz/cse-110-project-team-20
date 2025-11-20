@@ -7,6 +7,7 @@ import { World } from '../engine/ecs/world.js';
 import { createFuel } from '../engine/ecs/components/fuel.js';
 import { createVelocity } from '../engine/ecs/components/velocity.js';
 import { createEventBus } from '../engine/events.js';
+import { EventTopics } from '../engine/events/topics.js';
 
 describe('FuelSystem', () => {
   let world: World;
@@ -45,7 +46,7 @@ describe('FuelSystem', () => {
 
   it('should emit fuel:empty when fuel reaches zero', () => {
     const handler = vi.fn();
-    eventBus.on('fuel:empty', handler);
+    eventBus.on(EventTopics.FUEL_EMPTY, handler);
 
     const entityId = world.createEntity();
     world.addComponent(entityId, createFuel(10, 10)); // Low fuel
@@ -84,7 +85,7 @@ describe('FuelSystem', () => {
 
   it('should emit fuel:refueled event', () => {
     const handler = vi.fn();
-    eventBus.on('fuel:refueled', handler);
+    eventBus.on(EventTopics.FUEL_REFUELED, handler);
 
     const entityId = world.createEntity();
     world.addComponent(entityId, createFuel(100, 50));

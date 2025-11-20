@@ -4,6 +4,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { QuizUI } from '../ui/quiz.js';
 import { createEventBus } from '../engine/events.js';
+import { EventTopics } from '../engine/events/topics.js';
 import type { QuizData } from '../ui/quiz.js';
 
 describe('QuizUI', () => {
@@ -17,7 +18,7 @@ describe('QuizUI', () => {
 
   it('should emit quiz:passed when all answers are correct', () => {
     const handler = vi.fn();
-    eventBus.on('quiz:passed', handler);
+    eventBus.on(EventTopics.QUIZ_PASSED, handler);
 
     const quizData: QuizData = {
       id: 'test-quiz',
@@ -41,7 +42,7 @@ describe('QuizUI', () => {
 
   it('should emit quiz:failed when answers are incorrect', () => {
     const handler = vi.fn();
-    eventBus.on('quiz:failed', handler);
+    eventBus.on(EventTopics.QUIZ_FAILED, handler);
 
     const quizData: QuizData = {
       id: 'test-quiz',

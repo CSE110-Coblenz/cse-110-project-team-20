@@ -4,6 +4,7 @@
 export class Dialog {
   private overlay: HTMLDivElement;
   public readonly content: HTMLDivElement;
+  private showing : boolean = false
 
   constructor() {
     this.overlay = document.createElement('div');
@@ -45,6 +46,10 @@ export class Dialog {
     if (this.overlay.parentNode) {
       this.overlay.parentNode.removeChild(this.overlay);
     }
+  }
+
+  isShowing(): boolean {
+    return this.overlay.parentNode !== null;
   }
 
   dispose(): void {
