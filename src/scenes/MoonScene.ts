@@ -7,6 +7,8 @@ import type { SaveRepository } from '../persistence/SaveRepository.js';
 import type { GameOverUI } from '../ui/gameOver.js';
 import Konva from 'konva';
 import factsDataJson from '../data/facts.json' with { type: 'json' };
+import { drawMoon } from '../render/moonSceneBackground.js';
+import { addStars } from '../render/titleSceneBackground.js';
 
 interface Fact {
   title: string;
@@ -28,18 +30,12 @@ export class MoonScene implements Scene {
     this.stage.backgroundLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
 
+    //add star background
+    addStars(this.stage.backgroundLayer,100, this.stage.getWidth(), this.stage.getHeight());
+
     // Draw Moon
-    const moon = new Konva.Rect({
-      x: this.stage.getWidth() / 2 - 100,
-      y: 100,
-      width: 200,
-      height: 200,
-      fill: '#cccccc',
-      stroke: '#999999',
-      strokeWidth: 3,
-      cornerRadius: 100,
-    });
-    this.stage.backgroundLayer.add(moon);
+    const moon = drawMoon(this.stage.getWidth()/2,200, 200);
+    this.stage.backgroundLayer.add(moon)
 
     // Get player name
     const playerName = this.saveRepository.getPlayerName() || 'Explorer';
