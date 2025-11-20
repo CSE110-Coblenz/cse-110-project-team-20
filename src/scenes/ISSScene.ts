@@ -58,7 +58,6 @@ export class ISSScene implements Scene {
   private asteroidEntities: Map<string, number> = new Map(); // obstacle id -> entity id
   private asteroidNodes: Map<string, Konva.Circle | Konva.Image> = new Map(); // obstacle id -> Konva node (circle for testing, image later)
   private speed = 200; // pixels per second
-  // @ts-expect-error - Reserved for future levels with moving asteroids
   private asteroidSpeed = 50; // pixels per second for asteroids (for future levels with moving asteroids)
   // Hitbox shrink factor is now in CONFIG for easy adjustment
   private quizShown = false;
