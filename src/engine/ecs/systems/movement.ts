@@ -3,7 +3,7 @@
  * No allocations in hot path
  */
 import type { World } from '../world.js';
-import type { System } from '../../loop.js';
+import type { System } from '../types.js';
 import type { Position } from '../components/position.js';
 import type { Velocity } from '../components/velocity.js';
 

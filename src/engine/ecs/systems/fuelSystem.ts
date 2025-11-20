@@ -1,15 +1,27 @@
 /**
  * Fuel System - drains fuel when moving, handles refuel triggers
+ * 
+ * SOLID Principle: Single Responsibility - Only handles fuel consumption and refueling
+ * 
+ * This system is responsible for:
+ * - Draining fuel when entities are moving
+ * - Emitting events when fuel is empty
+ * - Refueling entities when requested
  */
 import type { World } from '../world.js';
-import type { System } from '../../loop.js';
+import type { System } from '../types.js';
 import type { Fuel } from '../components/fuel.js';
 import type { Velocity } from '../components/velocity.js';
 import type { EventBus } from '../../events.js';
+import { EventTopics } from '../../events/topics.js';
 
 export class FuelSystem implements System {
   private eventBus: EventBus;
-  private drainRate = 10; // fuel per second when moving
+  // Fuel drain rate: 7 units per second when moving
+  // This is a system-specific constant (not in CONFIG) because different
+  // game modes might want different drain rates
+  private drainRate = 7; // fuel per second when moving
+  private fuelEmptyEmitted = new Set<number>(); // Track which entities have already emitted fuel:empty
 
   constructor(eventBus: EventBus) {
     this.eventBus = eventBus;
@@ -30,8 +42,16 @@ export class FuelSystem implements System {
         fuel.current -= this.drainRate * dtSeconds;
         if (fuel.current < 0) {
           fuel.current = 0;
-          this.eventBus.emit('fuel:empty');
         }
+      }
+      
+      // Check if fuel is empty (whether moving or not) and emit event once
+      if (fuel.current <= 0 && !this.fuelEmptyEmitted.has(entityId)) {
+        this.fuelEmptyEmitted.add(entityId);
+        this.eventBus.emit(EventTopics.FUEL_EMPTY);
+      } else if (fuel.current > 0) {
+        // If fuel is restored and entity is not moving, reset the flag
+        this.fuelEmptyEmitted.delete(entityId);
       }
     });
   }
@@ -44,7 +64,9 @@ export class FuelSystem implements System {
     if (!fuel) return;
 
     fuel.current = Math.min(fuel.current + amount, fuel.max);
-    this.eventBus.emit('fuel:refueled', { amount });
+    // Reset fuel empty flag when refueled
+    this.fuelEmptyEmitted.delete(entityId);
+    this.eventBus.emit(EventTopics.FUEL_REFUELED, { amount });
   }
 }
 

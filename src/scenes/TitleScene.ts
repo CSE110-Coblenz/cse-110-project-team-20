@@ -4,6 +4,7 @@
 import type { Scene } from '../engine/sceneManager.js';
 import type { SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
+import type { GameOverUI } from '../ui/gameOver.js';
 import Konva from 'konva';
 import { createButton } from '../ui/buttons.js';
 import { drawEarth } from '../render/titleSceneBackground.js';
@@ -16,7 +17,7 @@ export class TitleScene implements Scene {
   private startButton: HTMLButtonElement | null = null;
   private uiContainer: HTMLDivElement | null = null;
 
-  constructor(sceneManager: SceneManager, stage: RenderStage) {
+  constructor(sceneManager: SceneManager, stage: RenderStage, _gameOverUI: GameOverUI) {
     this.sceneManager = sceneManager;
     this.stage = stage;
   }

@@ -45,7 +45,8 @@ describe('TitleScene', () => {
     document.body.innerHTML = '';
 
     // Initialize TitleScene
-    titleScene = new TitleScene(mockSceneManager, mockStage);
+    //pass in _gameoverUI to fit argument call
+    titleScene = new TitleScene(mockSceneManager, mockStage, {} as any);
     titleScene.init();
   });
 
