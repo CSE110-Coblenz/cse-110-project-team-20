@@ -51,7 +51,7 @@ function init(): void {
   loop.registerSystem(rotationSystem);
 
   // Start with title scene
-  sceneManager.transitionTo('iss');
+  sceneManager.transitionTo('title');
 
   // Start game loop
   loop.start();
