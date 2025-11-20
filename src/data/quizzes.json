@@ -1,0 +1,39 @@
+{
+  "iss-tutorial": {
+    "id": "iss-tutorial",
+    "title": "ISS Tutorial Quiz",
+    "questions": [
+      {
+        "question": "What does ISS stand for?",
+        "options": [
+          "International Space Station",
+          "Interstellar Space Station",
+          "Intergalactic Space Station",
+          "Independent Space Station"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "How do you refuel your spacecraft?",
+        "options": [
+          "Land on a planet",
+          "Dock with a refuel station",
+          "Wait for automatic refuel",
+          "You can't refuel"
+        ],
+        "correct": 1
+      },
+      {
+        "question": "What happens when fuel runs out?",
+        "options": [
+          "You can still move slowly",
+          "Movement is disabled",
+          "The game ends",
+          "Fuel regenerates automatically"
+        ],
+        "correct": 2
+      }
+    ]
+  }
+}
+

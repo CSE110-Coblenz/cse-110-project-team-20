@@ -1,0 +1,25 @@
+{
+  "facts": [
+    {
+      "title": "The Moon",
+      "content": "The Moon is Earth's only natural satellite, orbiting at an average distance of 384,400 kilometers."
+    },
+    {
+      "title": "Lunar Exploration",
+      "content": "Humans first landed on the Moon on July 20, 1969, during the Apollo 11 mission."
+    },
+    {
+      "title": "Moon Phases",
+      "content": "The Moon goes through phases because of the relative positions of the Earth, Moon, and Sun."
+    },
+    {
+      "title": "Lunar Surface",
+      "content": "The Moon's surface is covered with craters, formed by asteroid and meteorite impacts over billions of years."
+    },
+    {
+      "title": "Gravity",
+      "content": "The Moon's gravity is about 1/6th of Earth's gravity, making it easier to move and jump."
+    }
+  ]
+}
+
