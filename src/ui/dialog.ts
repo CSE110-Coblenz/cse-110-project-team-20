@@ -37,6 +37,7 @@ export class Dialog {
     this.overlay.appendChild(this.content);
   }
 
+
   show(htmlContent: string): void {
     this.content.innerHTML = htmlContent;
     document.body.appendChild(this.overlay);
