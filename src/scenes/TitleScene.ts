@@ -44,7 +44,7 @@ export class TitleScene implements Scene {
     const title = new Konva.Text({
       text: 'Cat Space Agency',
       x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2 - 100,
+      y: this.stage.getHeight() / 2 - 180,
       fontSize: 48,
       fontFamily: 'Press Start 2P',
       fontStyle: 'bold',
@@ -85,6 +85,7 @@ export class TitleScene implements Scene {
     this.startButton = createButton('Start', () => {
       this.sceneManager.transitionTo('name');
     });
+    this.startButton.style.marginBottom = '12px';
 
     this.uiContainer.appendChild(this.startButton);
     document.body.appendChild(this.uiContainer);
