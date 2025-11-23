@@ -34,6 +34,42 @@
         "correct": 2
       }
     ]
+  },
+  "moon-quiz": {
+    "id": "moon-quiz",
+    "title": "Moon Quiz",
+    "questions": [
+      {
+        "question": "Moon Q1",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "Moon Q2",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "correct": 0
+      },
+      {
+        "question": "Moon Q3",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "correct": 0
+      }
+    ]
   }
 }
 

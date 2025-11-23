@@ -9,6 +9,13 @@ import Konva from 'konva';
 import factsDataJson from '../data/facts.json' with { type: 'json' };
 import { drawMoon } from '../render/moonSceneBackground.js';
 import { addStars } from '../render/titleSceneBackground.js';
+import type { SceneManager } from '../engine/sceneManager.js';
+import type { EventBus } from '../engine/events.js'; 
+import { EventTopics } from '../engine/events/topics.js'; 
+import { QuizUI } from '../ui/quiz.js'; 
+import { createButton } from '../ui/buttons.js';
+import quizDataJson from '../data/quizzes.json' with { type: 'json' }; 
+import type { QuizData } from '../ui/quiz.js'; 
 
 interface Fact {
   title: string;
@@ -16,13 +23,25 @@ interface Fact {
 }
 
 export class MoonScene implements Scene {
+  private sceneManager: SceneManager;
   private stage: RenderStage;
+  private eventBus: EventBus;
   private saveRepository: SaveRepository;
   private uiContainer: HTMLDivElement | null = null;
+  private quizUI: QuizUI;
 
-  constructor(stage: RenderStage, saveRepository: SaveRepository, _gameOverUI: GameOverUI) {
+  constructor(
+    sceneManager: SceneManager, 
+    stage: RenderStage,
+    eventBus: EventBus,
+    saveRepository: SaveRepository,
+    _gameOverUI: GameOverUI
+  ) {
+    this.sceneManager = sceneManager;
     this.stage = stage;
+    this.eventBus = eventBus;
     this.saveRepository = saveRepository;
+    this.quizUI = new QuizUI(eventBus);
   }
 
   init(): void {
@@ -65,7 +84,8 @@ export class MoonScene implements Scene {
     });
     unlocked.offsetX(unlocked.width() / 2);
     this.stage.backgroundLayer.add(unlocked);
-
+    
+    //NOTE: sequence of events starts here
     // Display facts
     const facts = (factsDataJson as { facts: Fact[] }).facts;
     this.displayFacts(facts);
@@ -134,16 +154,53 @@ export class MoonScene implements Scene {
       }
     });
 
+    //NOTE: added quiz button here, might need to be moved depending on game sequence
+    const quizButton = createButton('Take Quiz', () => {
+      this.startQuiz();
+    });
+    quizButton.style.marginTop = '20px';
+    quizButton.style.width = '100%';
+
+    if (this.uiContainer) {
+      this.uiContainer.appendChild(quizButton);
+    }
+
     if (this.uiContainer) {
       document.body.appendChild(this.uiContainer);
     }
   }
+
+  private startQuiz(): void {
+    // hide facts (basically everrthing)
+    if (this.uiContainer){
+      this.uiContainer.style.display = 'none'; 
+    }
+
+    // get quiz data
+    const quizData = (quizDataJson as Record<string, QuizData>)['moon-quiz'];
+    //handler for passed quiz.
+    this.eventBus.on(EventTopics.QUIZ_PASSED, this.handleQuizPassed);
+    //display quiz
+    if (quizData) {
+      this.quizUI.showQuiz(quizData);
+    }
+  }
+
+  private handleQuizPassed = (event: { quizId: string }) => {
+    if (event.quizId === 'moon-quiz') {
+      // Now we can transition to new thing if needed
+      this.saveRepository.setQuizResult('moon-quiz', true);
+    }
+  };
 
   render(): void {
     // Static scene
   }
 
   dispose(): void {
+    this.eventBus.off(EventTopics.QUIZ_PASSED, this.handleQuizPassed);
+    this.quizUI.dispose();
+
     if (this.uiContainer && this.uiContainer.parentNode) {
       this.uiContainer.parentNode.removeChild(this.uiContainer);
     }

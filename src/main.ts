@@ -37,7 +37,7 @@ function init(): void {
   sceneManager.register('name', () => new NameScene(sceneManager, stage, saveRepository, gameOverUI));
   sceneManager.register('iss', () => new ISSScene(sceneManager, stage, world, eventBus, saveRepository, gameOverUI));
   sceneManager.register('cutscene', () => new CutsceneScene(sceneManager, stage, saveRepository, gameOverUI));
-  sceneManager.register('moon', () => new MoonScene(stage, saveRepository, gameOverUI));
+  sceneManager.register('moon', () => new MoonScene(sceneManager, stage, eventBus, saveRepository, gameOverUI));
 
   // Create and register systems
   const movementSystem = new MovementSystem();
