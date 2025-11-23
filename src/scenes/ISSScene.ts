@@ -112,7 +112,10 @@ export class ISSScene implements Scene {
     // Listen for quiz completion
     this.eventBus.on('quiz:passed', () => {
       this.eventBus.emit('cutscene:start', { cutsceneId: 'iss-to-moon' });
-      this.sceneManager.transitionTo('cutscene');
+      // wait 2 seconds then start the cutscene
+      setTimeout(() => {
+        this.sceneManager.transitionTo('cutscene-iss-to-moon');
+      }, 2000);
     });
 
     // Listen for fuel empty

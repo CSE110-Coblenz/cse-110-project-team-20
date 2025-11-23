@@ -31,12 +31,16 @@ function init(): void {
   const sceneManager = new SceneManager(eventBus);
 
   // Register scenes
+  // ...existing code...
+  // Register scenes
   sceneManager.register('title', () => new TitleScene(sceneManager, stage));
   sceneManager.register('name', () => new NameScene(sceneManager, stage, saveRepository));
   sceneManager.register('iss', () => new ISSScene(sceneManager, stage, world, eventBus));
   sceneManager.register('cutscene', () => new CutsceneScene(sceneManager, stage, saveRepository));
+  // specific cutscene for ISS -> Moon
+  sceneManager.register('cutscene-iss-to-moon', () => new CutsceneScene(sceneManager, stage, saveRepository));
   sceneManager.register('moon', () => new MoonScene(stage, saveRepository));
-
+// ...existing code...
   // Create and register systems
   const movementSystem = new MovementSystem();
   const fuelSystem = new FuelSystem(eventBus);

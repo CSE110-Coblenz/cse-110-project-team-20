@@ -1,7 +1,10 @@
 /**
  * Scene Manager - handles scene lifecycle and transitions
  */
+
 import type { EventBus } from './events.js';
+
+
 
 export interface Scene {
   init(): void;

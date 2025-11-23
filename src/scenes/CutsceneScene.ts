@@ -130,6 +130,8 @@ export class CutsceneScene implements Scene {
     this.saveRepository.setTutorialDone(true);
     this.saveRepository.setExplorationUnlocked(true);
 
+    this.sceneManager.transitionTo('moon');
+
     // Wait a moment then transition
     setTimeout(() => {
       this.sceneManager.transitionTo('moon');
