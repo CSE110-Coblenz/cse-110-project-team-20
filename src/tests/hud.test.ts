@@ -1,17 +1,9 @@
-import { describe, it, expect, beforeEach} from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { HUD } from '../ui/hud.js';
-import { World } from '../engine/ecs/world.js';
-import { createEventBus } from '../engine/events.js';
 
 describe('HudSystem', () => {
-  let world: World;
-  let hudSystem: HUD;
-  let eventBus: ReturnType<typeof createEventBus>;
-
   beforeEach(() => {
-    world = new World();
-    eventBus = createEventBus();
-    hudSystem = new HUD();
+    document.body.innerHTML = '';
   });
 
   it('should initialise the HUD and append to document body', () => {
@@ -36,7 +28,7 @@ describe('HudSystem', () => {
     expect(hud['fuelBarFill'].style.width).toBe('100%');
     expect(hud['fuelText'].textContent).toBe('Fuel: 100.0/100');
   });
-  
+
   it('should cap the fuel bar width between 0% and 100%', () => {
     const hud = new HUD();
     // > 100%
@@ -54,5 +46,4 @@ describe('HudSystem', () => {
     hud.dispose();
     expect(document.body.contains(hud['container'])).toBe(false);
   });
-
 });

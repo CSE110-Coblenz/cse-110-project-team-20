@@ -16,19 +16,22 @@ export class NameScene implements Scene {
   private uiContainer: HTMLDivElement | null = null;
   private input: HTMLInputElement | null = null;
   private submitButton: HTMLButtonElement | null = null;
+  private readonly gameOverUI: GameOverUI;
 
   constructor(
     sceneManager: SceneManager,
     stage: RenderStage,
     saveRepository: SaveRepository,
-    _gameOverUI: GameOverUI
+    gameOverUI: GameOverUI
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
     this.saveRepository = saveRepository;
+    this.gameOverUI = gameOverUI;
   }
 
   init(): void {
+    this.gameOverUI.hide();
     // Clear layers
     this.stage.backgroundLayer.destroyChildren();
 
@@ -104,7 +107,8 @@ export class NameScene implements Scene {
     this.sceneManager.transitionTo('iss');
   }
 
-  update(_dt: number): void {
+  update(dt: number): void {
+    void dt;
     // Static scene
   }
 
@@ -121,4 +125,3 @@ export class NameScene implements Scene {
     this.uiContainer = null;
   }
 }
-

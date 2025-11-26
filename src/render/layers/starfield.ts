@@ -116,4 +116,3 @@ export class StarfieldLayer {
     // Batch draw handled by stage
   }
 }
-

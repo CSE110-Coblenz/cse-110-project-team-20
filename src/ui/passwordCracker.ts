@@ -2,21 +2,20 @@ import { Dialog } from './dialog.js';
 import { createButton } from './buttons.js';
 import type { EventBus } from '../engine/events.js';
 
-//List of Puzzles 
+//List of Puzzles
 // The password is all the capital letters in the text.
 import puzzlesDataJson from '../data/puzzle.json' with { type: 'json' };
 type PuzzleSet = Record<string, string[]>;
 const PUZZLES = puzzlesDataJson as PuzzleSet;
 
-
- //Options for launching the password cracker minigame.
- //The puzzle/target are now generated internally.
+//Options for launching the password cracker minigame.
+//The puzzle/target are now generated internally.
 
 export interface PasswordCrackerOptions {
-  //A unique ID for this minigame instance 
+  //A unique ID for this minigame instance
   id: string;
 
-   //The title of the minigame window (e.g., "ISS System Access") 
+  //The title of the minigame window (e.g., "ISS System Access")
   title: string;
 
   puzzleSetKey: string;
@@ -36,7 +35,6 @@ export class PasswordCracker {
     this.dialog = new Dialog();
     this.eventBus = eventBus;
   }
-  
 
   //Generates the password from the puzzle text (all caps).
 
@@ -50,26 +48,24 @@ export class PasswordCracker {
     return matches.join('');
   }
 
-
-   //Show the password cracker minigame.
+  //Show the password cracker minigame.
 
   public show(options: PasswordCrackerOptions): void {
     this.options = options;
 
-    const puzzleSet = PUZZLES[options.puzzleSetKey]
+    const puzzleSet = PUZZLES[options.puzzleSetKey];
 
-    if(!puzzleSet || puzzleSet.length === 0 ){
+    if (!puzzleSet || puzzleSet.length === 0) {
       console.error(`Password puzzle set "${options.puzzleSetKey}" not found!`);
-      this.currentTarget = "FALLBACK";
-      this.renderMainUI("Error: Puzzle set not found. Enter FALLBACK.");
+      this.currentTarget = 'FALLBACK';
+      this.renderMainUI('Error: Puzzle set not found. Enter FALLBACK.');
       return;
     }
-    const puzzelIndex = Math.floor(Math.random() * puzzleSet.length)
-    const puzzelText = puzzleSet[puzzelIndex]
-    this.currentTarget = this.extractPassword(puzzelText)
-    this.renderMainUI(puzzelText)
+    const puzzelIndex = Math.floor(Math.random() * puzzleSet.length);
+    const puzzelText = puzzleSet[puzzelIndex];
+    this.currentTarget = this.extractPassword(puzzelText);
+    this.renderMainUI(puzzelText);
   }
-
 
   //Renders the main input screen for the minigame.
 
@@ -117,12 +113,10 @@ export class PasswordCracker {
 
     this.dialog.show(html);
 
-    this.inputElement = this.dialog.content.querySelector<HTMLInputElement>(
-      '#password-input'
-    );
-    this.feedbackElement = this.dialog.content.querySelector<HTMLDivElement>(
-      '#password-feedback'
-    );
+    this.inputElement =
+      this.dialog.content.querySelector<HTMLInputElement>('#password-input');
+    this.feedbackElement =
+      this.dialog.content.querySelector<HTMLDivElement>('#password-feedback');
 
     const submitButton = createButton('Submit', () => {
       this.handleSubmit();
@@ -139,15 +133,14 @@ export class PasswordCracker {
     this.inputElement?.focus();
   }
 
-
-   //Handles the password submission logic.
+  //Handles the password submission logic.
 
   private handleSubmit(): void {
     if (!this.inputElement || !this.options) return;
 
     // Compare guess (auto-uppercased) to the stored target
     const guess = this.inputElement.value.trim().toUpperCase();
-    
+
     if (guess === this.currentTarget) {
       // PASS
       this.eventBus.emit('minigame:passed', { minigameId: this.options.id });
@@ -158,13 +151,11 @@ export class PasswordCracker {
       }
       // FAILED
       this.eventBus.emit('minigame:failed', { minigameId: this.options.id });
-      
+
       this.inputElement.value = '';
       this.inputElement.focus();
     }
   }
-
-
 
   private showResult(success: boolean): void {
     if (!this.options || !success) return;
@@ -181,9 +172,8 @@ export class PasswordCracker {
     this.dialog.content.appendChild(continueButton);
   }
 
-
-  public isShowing() : boolean{
-    return this.dialog.isShowing()
+  public isShowing(): boolean {
+    return this.dialog.isShowing();
   }
 
   public dispose(): void {

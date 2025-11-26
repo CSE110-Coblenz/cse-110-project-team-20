@@ -4,7 +4,7 @@
 export class Dialog {
   private overlay: HTMLDivElement;
   public readonly content: HTMLDivElement;
-  private showing : boolean = false
+  private showing: boolean = false;
 
   constructor() {
     this.overlay = document.createElement('div');
@@ -56,4 +56,3 @@ export class Dialog {
     this.hide();
   }
 }
-

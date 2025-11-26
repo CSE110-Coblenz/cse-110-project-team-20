@@ -5,13 +5,15 @@
 import type Konva from 'konva';
 
 export class UILayer {
-  constructor(_layer: Konva.Layer) {
-    // Layer stored for future use if needed
+  private readonly layer: Konva.Layer;
+
+  constructor(layer: Konva.Layer) {
+    this.layer = layer;
   }
 
   render(): void {
-    // UI elements handled via DOM overlay
-    // This layer reserved for future Konva-based UI
+    if (this.layer.getChildren().length > 0) {
+      this.layer.batchDraw();
+    }
   }
 }
-

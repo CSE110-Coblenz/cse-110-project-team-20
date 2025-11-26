@@ -55,8 +55,8 @@ export class HUD {
   updateFuel(current: number, max: number): void {
     const percentage = Math.max(0, Math.min(100, (current / max) * 100));
     this.fuelBarFill.style.width = `${percentage}%`;
-    let fuel_text_cap = Math.max(0, Math.min(100, current))
-    this.fuelText.textContent = `Fuel: ${fuel_text_cap.toFixed(1)}/${max}`;
+    const fuelTextCap = Math.max(0, Math.min(max, current));
+    this.fuelText.textContent = `Fuel: ${fuelTextCap.toFixed(1)}/${max}`;
   }
 
   dispose(): void {
@@ -65,4 +65,3 @@ export class HUD {
     }
   }
 }
-

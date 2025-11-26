@@ -12,5 +12,4 @@ export const EventTopics = {
   SCENE_TRANSITION: 'scene:transition',
 } as const;
 
-export type EventTopic = typeof EventTopics[keyof typeof EventTopics];
-
+export type EventTopic = (typeof EventTopics)[keyof typeof EventTopics];

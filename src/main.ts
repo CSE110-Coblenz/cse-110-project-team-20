@@ -33,11 +33,35 @@ function init(): void {
   const gameOverUI = new GameOverUI(); // Shared GameOverUI for all scenes
 
   // Register scenes
-  sceneManager.register('title', () => new TitleScene(sceneManager, stage, gameOverUI));
-  sceneManager.register('name', () => new NameScene(sceneManager, stage, saveRepository, gameOverUI));
-  sceneManager.register('iss', () => new ISSScene(sceneManager, stage, world, eventBus, saveRepository, gameOverUI));
-  sceneManager.register('cutscene', () => new CutsceneScene(sceneManager, stage, saveRepository, gameOverUI));
-  sceneManager.register('moon', () => new MoonScene(sceneManager, stage, eventBus, saveRepository, gameOverUI));
+  sceneManager.register(
+    'title',
+    () => new TitleScene(sceneManager, stage, gameOverUI)
+  );
+  sceneManager.register(
+    'name',
+    () => new NameScene(sceneManager, stage, saveRepository, gameOverUI)
+  );
+  sceneManager.register(
+    'iss',
+    () =>
+      new ISSScene(
+        sceneManager,
+        stage,
+        world,
+        eventBus,
+        saveRepository,
+        gameOverUI
+      )
+  );
+  sceneManager.register(
+    'cutscene',
+    () => new CutsceneScene(sceneManager, stage, saveRepository, gameOverUI)
+  );
+  sceneManager.register(
+    'moon',
+    () =>
+      new MoonScene(sceneManager, stage, eventBus, saveRepository, gameOverUI)
+  );
 
   // Create and register systems
   const movementSystem = new MovementSystem();
@@ -63,4 +87,3 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
-

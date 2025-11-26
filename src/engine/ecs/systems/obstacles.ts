@@ -1,7 +1,7 @@
 /**
  * Obstacle System - detects collisions with obstacles and drains fuel
  * Also handles boundary wrapping for moving obstacles
- * 
+ *
  * SOLID Principle: Single Responsibility - Only handles obstacle collisions and movement
  * DRY Principle: Uses shared collision utility instead of duplicating AABB logic
  */
@@ -10,7 +10,10 @@ import type { System } from '../types.js';
 import type { Position } from '../components/position.js';
 import type { Fuel } from '../components/fuel.js';
 import type { Velocity } from '../components/velocity.js';
-import { createShipBoundingBox, checkShipAsteroidCollision } from '../../utils/collision.js';
+import {
+  createShipBoundingBox,
+  checkShipAsteroidCollision,
+} from '../../utils/collision.js';
 
 export interface Obstacle {
   id: string;
@@ -34,9 +37,14 @@ export class ObstaclesSystem implements System {
    * Calculate asteroid center position - used by both visual rendering and collision detection
    * This ensures they always match exactly
    */
-  calculateAsteroidCenter(obstaclePos: { x: number; y: number }, obstacle: Obstacle): { x: number; y: number; radius: number } {
-    const centerX = obstaclePos.x + (obstacle.offsetX || 0) + obstacle.width / 2;
-    const centerY = obstaclePos.y + (obstacle.offsetY || 0) + obstacle.height / 2;
+  calculateAsteroidCenter(
+    obstaclePos: { x: number; y: number },
+    obstacle: Obstacle
+  ): { x: number; y: number; radius: number } {
+    const centerX =
+      obstaclePos.x + (obstacle.offsetX || 0) + obstacle.width / 2;
+    const centerY =
+      obstaclePos.y + (obstacle.offsetY || 0) + obstacle.height / 2;
     const radius = Math.min(obstacle.width, obstacle.height) / 2;
     return { x: centerX, y: centerY, radius };
   }
@@ -74,9 +82,15 @@ export class ObstaclesSystem implements System {
   update(_dt: number, world: World): void {
     // Update obstacle positions and handle boundary wrapping
     for (const obstacle of this.obstacles.values()) {
-      const position = world.getComponent<Position>(obstacle.entityId, 'position');
-      const velocity = world.getComponent<Velocity>(obstacle.entityId, 'velocity');
-      
+      const position = world.getComponent<Position>(
+        obstacle.entityId,
+        'position'
+      );
+      const velocity = world.getComponent<Velocity>(
+        obstacle.entityId,
+        'velocity'
+      );
+
       if (position && velocity && this.stageWidth > 0 && this.stageHeight > 0) {
         // Wrap around screen boundaries
         if (position.x + obstacle.width < 0) {
@@ -84,7 +98,7 @@ export class ObstaclesSystem implements System {
         } else if (position.x > this.stageWidth) {
           position.x = -obstacle.width;
         }
-        
+
         if (position.y + obstacle.height < 0) {
           position.y = this.stageHeight;
         } else if (position.y > this.stageHeight) {
@@ -108,18 +122,24 @@ export class ObstaclesSystem implements System {
 
       // Simple AABB check with obstacle boxes
       for (const obstacle of this.obstacles.values()) {
-        const obstaclePos = world.getComponent<Position>(obstacle.entityId, 'position');
+        const obstaclePos = world.getComponent<Position>(
+          obstacle.entityId,
+          'position'
+        );
         if (!obstaclePos) continue;
 
         // Calculate asteroid center using shared function - ensures visual and collision match exactly
-        const asteroidInfo = this.calculateAsteroidCenter(obstaclePos, obstacle);
+        const asteroidInfo = this.calculateAsteroidCenter(
+          obstaclePos,
+          obstacle
+        );
         const asteroidCenterX = asteroidInfo.x;
         const asteroidCenterY = asteroidInfo.y;
         const asteroidRadius = asteroidInfo.radius;
-        
+
         // Check collision using hybrid approach: ship (box) vs asteroid (circle)
         const shipBox = createShipBoundingBox(position.x, position.y);
-        
+
         // Quick distance check to skip asteroids that are clearly too far away
         // This is an optimization for early rejection (skip distant asteroids)
         // Use a tighter buffer to prevent false positives
@@ -128,24 +148,30 @@ export class ObstaclesSystem implements System {
         const shipMaxRadius = Math.max(shipBox.width, shipBox.height) / 2;
         const maxDistance = asteroidRadius + shipMaxRadius + 10; // Small 10px buffer only
         const centerDistance = Math.sqrt(
-          Math.pow(asteroidCenterX - shipCenterX, 2) + 
-          Math.pow(asteroidCenterY - shipCenterY, 2)
+          Math.pow(asteroidCenterX - shipCenterX, 2) +
+            Math.pow(asteroidCenterY - shipCenterY, 2)
         );
-        
+
         // Skip if too far away (early rejection)
         // Only skip if centers are clearly too far apart
         if (centerDistance > maxDistance) {
           continue;
         }
-        
-        
-        if (checkShipAsteroidCollision(shipBox, asteroidCenterX, asteroidCenterY, asteroidRadius)) {
+
+        if (
+          checkShipAsteroidCollision(
+            shipBox,
+            asteroidCenterX,
+            asteroidCenterY,
+            asteroidRadius
+          )
+        ) {
           // Collision detected - drain fuel
-          
+
           // Drain fuel
           fuel.current = Math.max(0, fuel.current - obstacle.fuelDrain);
           this.collisionCooldown.set(shipId, now);
-          
+
           // Apply knockback - push ship away from asteroid directly on position
           // This ensures knockback works even if velocity gets reset by player input
           const shipPosition = world.getComponent<Position>(shipId, 'position');
@@ -153,38 +179,38 @@ export class ObstaclesSystem implements System {
             // Calculate ship center
             const shipCenterX = shipBox.x + shipBox.width / 2;
             const shipCenterY = shipBox.y + shipBox.height / 2;
-            
+
             // Calculate direction from asteroid to ship (push ship away)
             const dx = shipCenterX - asteroidCenterX;
             const dy = shipCenterY - asteroidCenterY;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            
+
             if (distance > 0) {
               // Normalize direction
               const dirX = dx / distance;
               const dirY = dy / distance;
-              
+
               // Apply knockback directly to position (in pixels)
               // Use a fixed distance for immediate visual feedback (about 10-15 pixels)
               const knockbackDistance = 15; // Pixels to push ship away immediately
-              
+
               shipPosition.x += dirX * knockbackDistance;
               shipPosition.y += dirY * knockbackDistance;
-              
+
               // Clear velocity to stop movement immediately (movement will be disabled)
               const velocity = world.getComponent<Velocity>(shipId, 'velocity');
               if (velocity) {
                 velocity.vx = 0;
                 velocity.vy = 0;
               }
-              
+
               // Notify that knockback occurred (for disabling movement)
               if (this.onKnockbackCallback) {
                 this.onKnockbackCallback();
               }
             }
           }
-          
+
           // Emit event for feedback
           // You can add visual feedback here if needed
           break; // Only one collision per frame
@@ -193,4 +219,3 @@ export class ObstaclesSystem implements System {
     }
   }
 }
-

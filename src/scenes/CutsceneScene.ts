@@ -15,19 +15,22 @@ export class CutsceneScene implements Scene {
   private shipSprite: Konva.Rect | null = null;
   private tween: Konva.Tween | null = null;
   private completed = false;
+  private readonly gameOverUI: GameOverUI;
 
   constructor(
     sceneManager: SceneManager,
     stage: RenderStage,
     saveRepository: SaveRepository,
-    _gameOverUI: GameOverUI
+    gameOverUI: GameOverUI
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
     this.saveRepository = saveRepository;
+    this.gameOverUI = gameOverUI;
   }
 
   init(): void {
+    this.gameOverUI.hide();
     // Clear layers
     this.stage.backgroundLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
@@ -138,7 +141,8 @@ export class CutsceneScene implements Scene {
     }, 1000);
   }
 
-  update(_dt: number): void {
+  update(dt: number): void {
+    void dt;
     // Tween handles updates automatically
     // Just need to batch draw
   }
@@ -157,4 +161,3 @@ export class CutsceneScene implements Scene {
     this.stage.uiLayer.destroyChildren();
   }
 }
-

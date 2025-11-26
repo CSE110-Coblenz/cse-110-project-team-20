@@ -1,15 +1,17 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { TitleScene } from '../scenes/TitleScene.js'; 
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { TitleScene } from '../scenes/TitleScene.js';
 import type { SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
+import type { GameOverUI } from '../ui/gameOver.js';
 
 describe('TitleScene', () => {
   let titleScene: TitleScene;
   let mockSceneManager: SceneManager;
   let mockStage: RenderStage;
+  let mockGameOverUI: GameOverUI;
 
   beforeEach(() => {
-    (HTMLCanvasElement.prototype as any).getContext = vi.fn(() => ({
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
       save: vi.fn(),
       restore: vi.fn(),
       scale: vi.fn(),
@@ -26,32 +28,43 @@ describe('TitleScene', () => {
       arc: vi.fn(),
       rect: vi.fn(),
       measureText: vi.fn(() => ({ width: 100 })),
-    } as unknown as CanvasRenderingContext2D));
-    
-    // Mock SceneManager
+    } as CanvasRenderingContext2D);
+
     mockSceneManager = {
       transitionTo: vi.fn(),
     } as unknown as SceneManager;
 
-    // Mock stage with just the required properties
     mockStage = {
-      backgroundLayer: { destroyChildren: vi.fn(), add: vi.fn(), batchDraw: vi.fn() },
+      backgroundLayer: {
+        destroyChildren: vi.fn(),
+        add: vi.fn(),
+        batchDraw: vi.fn(),
+      },
       uiLayer: { destroyChildren: vi.fn() },
       getWidth: () => 800,
       getHeight: () => 600,
     } as unknown as RenderStage;
 
-    // Clean DOM
+    mockGameOverUI = {
+      show: vi.fn(),
+      hide: vi.fn(),
+      isShowing: vi.fn(() => false),
+      dispose: vi.fn(),
+    } as GameOverUI;
+
     document.body.innerHTML = '';
 
-    // Initialize TitleScene
-    //pass in _gameoverUI to fit argument call
-    titleScene = new TitleScene(mockSceneManager, mockStage, {} as any);
+    titleScene = new TitleScene(mockSceneManager, mockStage, mockGameOverUI);
     titleScene.init();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+    document.body.innerHTML = '';
+  });
+
   it('should call sceneManager.transitionTo("name") when start button is clicked', () => {
-    const startButton = titleScene['startButton']; 
+    const startButton = titleScene['startButton'];
     expect(startButton).not.toBeNull();
 
     // Simulate click

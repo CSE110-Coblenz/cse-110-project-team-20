@@ -14,4 +14,3 @@ export function createSprite(key: string): Sprite {
     key,
   };
 }
-

@@ -40,36 +40,35 @@
     "title": "Moon Quiz",
     "questions": [
       {
-        "question": "Moon Q1",
+        "question": "Which lunar site hosted the Apollo 11 landing?",
         "options": [
-          "A",
-          "B",
-          "C",
-          "D"
+          "Sea of Tranquility",
+          "Tycho Crater",
+          "Copernicus Crater",
+          "Oceanus Procellarum"
         ],
         "correct": 0
       },
       {
-        "question": "Moon Q2",
+        "question": "Why does Tycho Crater stand out when you view the Moon from Earth?",
         "options": [
-          "A",
-          "B",
-          "C",
-          "D"
+          "It is the tallest mountain range on the Moon",
+          "Its bright rays streak across the lunar near side",
+          "It is filled with frozen water",
+          "It is the darkest region on the surface"
         ],
-        "correct": 0
+        "correct": 1
       },
       {
-        "question": "Moon Q3",
+        "question": "What makes Copernicus Crater a textbook example of a complex crater?",
         "options": [
-          "A",
-          "B",
-          "C",
-          "D"
+          "It is perfectly flat with no peaks",
+          "Its lava lake glows blue at night",
+          "It has terraced walls and towering central peaks",
+          "It constantly erupts geysers of dust"
         ],
-        "correct": 0
+        "correct": 2
       }
     ]
   }
 }
-

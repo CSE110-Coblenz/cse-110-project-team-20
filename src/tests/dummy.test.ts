@@ -1,10 +1,9 @@
-import { describe, it, expect, beforeEach} from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('Dummy Test', () => {
-    beforeEach(() => {
-    });
+  beforeEach(() => {});
 
-    it('should pass a simple test', () => {
-        expect(1 + 1).toBe(2);
-    });
+  it('should pass a simple test', () => {
+    expect(1 + 1).toBe(2);
+  });
 });

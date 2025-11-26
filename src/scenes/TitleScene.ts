@@ -10,25 +10,36 @@ import { createButton } from '../ui/buttons.js';
 import { drawEarth } from '../render/titleSceneBackground.js';
 import { addStars } from '../render/titleSceneBackground.js';
 
-
 export class TitleScene implements Scene {
   private sceneManager: SceneManager;
   private stage: RenderStage;
   private startButton: HTMLButtonElement | null = null;
   private uiContainer: HTMLDivElement | null = null;
+  private readonly gameOverUI: GameOverUI;
 
-  constructor(sceneManager: SceneManager, stage: RenderStage, _gameOverUI: GameOverUI) {
+  constructor(
+    sceneManager: SceneManager,
+    stage: RenderStage,
+    gameOverUI: GameOverUI
+  ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
+    this.gameOverUI = gameOverUI;
   }
 
   init(): void {
+    this.gameOverUI.hide();
     // Clear layers
     this.stage.backgroundLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
 
     // Add stars to background
-    addStars(this.stage.backgroundLayer, 100, this.stage.getWidth(), this.stage.getHeight());
+    addStars(
+      this.stage.backgroundLayer,
+      100,
+      this.stage.getWidth(),
+      this.stage.getHeight()
+    );
 
     // Draw Earth background
     const earth = drawEarth(
@@ -38,7 +49,6 @@ export class TitleScene implements Scene {
     );
     this.stage.backgroundLayer.add(earth);
     this.stage.backgroundLayer.batchDraw();
-
 
     // Add title text to background layer
     const title = new Konva.Text({
@@ -91,7 +101,8 @@ export class TitleScene implements Scene {
     document.body.appendChild(this.uiContainer);
   }
 
-  update(_dt: number): void {
+  update(dt: number): void {
+    void dt;
     // Title scene is static
   }
 

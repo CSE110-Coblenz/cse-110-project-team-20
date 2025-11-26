@@ -109,7 +109,11 @@ export class QuizUI {
     for (let i = 0; i < this.quizData.questions.length; i++) {
       const selectedAnswer = this.selectedAnswers[i];
       const question = this.quizData.questions[i];
-      if (selectedAnswer !== undefined && question && selectedAnswer === question.correct) {
+      if (
+        selectedAnswer !== undefined &&
+        question &&
+        selectedAnswer === question.correct
+      ) {
         correctCount++;
       }
     }
@@ -124,10 +128,13 @@ export class QuizUI {
     `;
 
     if (allCorrect) {
-      html += '<p style="color: #00ff00; margin-bottom: 16px;">Congratulations! You passed!</p>';
+      html +=
+        '<p style="color: #00ff00; margin-bottom: 16px;">Congratulations! You passed!</p>';
       const closeBtn = createButton('Continue', () => {
         this.dialog.hide();
-        this.eventBus.emit(EventTopics.QUIZ_PASSED, { quizId: this.quizData!.id });
+        this.eventBus.emit(EventTopics.QUIZ_PASSED, {
+          quizId: this.quizData!.id,
+        });
       });
       html = `<div>${html}</div>`;
       this.dialog.show(html);
@@ -154,4 +161,3 @@ export class QuizUI {
     this.dialog.dispose();
   }
 }
-

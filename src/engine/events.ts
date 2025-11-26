@@ -13,18 +13,15 @@ type GameEvents = {
   [EventTopics.FUEL_REFUELED]: { amount: number };
   [EventTopics.SAVE_UPDATED]: void;
   [EventTopics.SCENE_TRANSITION]: { to: string };
-  'minigame:passed' : {minigameId: string}
-  'minigame:failed' : {minigameId: string}
+  'minigame:passed': { minigameId: string };
+  'minigame:failed': { minigameId: string };
 };
 
 export type EventBus = Emitter<GameEvents>;
 
 export function createEventBus(): EventBus {
   return mitt<GameEvents>();
-
-  
 }
 
 // Re-export topics for convenience
 export { EventTopics } from './events/topics.js';
-

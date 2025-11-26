@@ -48,11 +48,14 @@ export class PlayerInputSystem implements System {
 
   update(_dt: number, world: World): void {
     if (this.playerEntityId === null || !this.enabled) return;
-    
+
     // Check condition if set
     if (this.conditionCheck && !this.conditionCheck()) {
       // Condition failed - stop movement
-      const velocity = world.getComponent<Velocity>(this.playerEntityId, 'velocity');
+      const velocity = world.getComponent<Velocity>(
+        this.playerEntityId,
+        'velocity'
+      );
       if (velocity) {
         velocity.vx = 0;
         velocity.vy = 0;
@@ -60,7 +63,10 @@ export class PlayerInputSystem implements System {
       return;
     }
 
-    const velocity = world.getComponent<Velocity>(this.playerEntityId, 'velocity');
+    const velocity = world.getComponent<Velocity>(
+      this.playerEntityId,
+      'velocity'
+    );
     if (!velocity) return;
 
     const keys = this.keyboard.getState();
@@ -76,4 +82,3 @@ export class PlayerInputSystem implements System {
     if (keys.down) velocity.vy = this.speed;
   }
 }
-

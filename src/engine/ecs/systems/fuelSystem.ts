@@ -1,8 +1,8 @@
 /**
  * Fuel System - drains fuel when moving, handles refuel triggers
- * 
+ *
  * SOLID Principle: Single Responsibility - Only handles fuel consumption and refueling
- * 
+ *
  * This system is responsible for:
  * - Draining fuel when entities are moving
  * - Emitting events when fuel is empty
@@ -36,7 +36,9 @@ export class FuelSystem implements System {
       const velocity = world.getComponent<Velocity>(entityId, 'velocity')!;
 
       // Check if moving
-      const speed = Math.sqrt(velocity.vx * velocity.vx + velocity.vy * velocity.vy);
+      const speed = Math.sqrt(
+        velocity.vx * velocity.vx + velocity.vy * velocity.vy
+      );
       if (speed > 0.01) {
         // Moving - drain fuel
         fuel.current -= this.drainRate * dtSeconds;
@@ -44,7 +46,7 @@ export class FuelSystem implements System {
           fuel.current = 0;
         }
       }
-      
+
       // Check if fuel is empty (whether moving or not) and emit event once
       if (fuel.current <= 0 && !this.fuelEmptyEmitted.has(entityId)) {
         this.fuelEmptyEmitted.add(entityId);
@@ -69,4 +71,3 @@ export class FuelSystem implements System {
     this.eventBus.emit(EventTopics.FUEL_REFUELED, { amount });
   }
 }
-

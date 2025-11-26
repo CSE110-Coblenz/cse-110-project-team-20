@@ -42,10 +42,7 @@ export class World {
     index.add(entityId);
   }
 
-  removeComponent(
-    entityId: EntityId,
-    componentType: ComponentType
-  ): void {
+  removeComponent(entityId: EntityId, componentType: ComponentType): void {
     const entityComponents = this.components.get(entityId);
     if (!entityComponents) return;
 
@@ -124,4 +121,3 @@ export class World {
     this.entities.delete(entityId);
   }
 }
-

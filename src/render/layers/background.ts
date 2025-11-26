@@ -22,4 +22,3 @@ export class BackgroundLayer {
     // Background is static, no updates needed
   }
 }
-
