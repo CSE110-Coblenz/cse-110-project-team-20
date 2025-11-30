@@ -293,8 +293,39 @@ export class MoonExplorationScene implements Scene {
   private setStageSize(width: number, height: number): void {
     this.stage.stage.size({ width, height });
     const container = this.stage.stage.container();
-    container.style.width = `${width}px`;
-    container.style.height = `${height}px`;
+    
+    // If stage is larger than default, scale it down to fit viewport
+    if (width > CONFIG.STAGE_WIDTH || height > CONFIG.STAGE_HEIGHT) {
+      const scaleX = CONFIG.STAGE_WIDTH / width;
+      const scaleY = CONFIG.STAGE_HEIGHT / height;
+      const scale = Math.min(scaleX, scaleY); // Use smaller scale to fit both dimensions
+      
+      // Set container to actual canvas size
+      container.style.width = `${width}px`;
+      container.style.height = `${height}px`;
+      // Scale down to fit viewport, centered
+      container.style.transform = `scale(${scale})`;
+      container.style.transformOrigin = 'center center';
+      // Center the container using the scaled dimensions
+      const scaledWidth = width * scale;
+      const scaledHeight = height * scale;
+      container.style.position = 'absolute';
+      container.style.left = '50%';
+      container.style.top = '50%';
+      container.style.marginLeft = `-${scaledWidth / 2}px`;
+      container.style.marginTop = `-${scaledHeight / 2}px`;
+    } else {
+      // Normal size - no scaling needed
+      container.style.width = `${width}px`;
+      container.style.height = `${height}px`;
+      container.style.transform = '';
+      container.style.transformOrigin = '';
+      container.style.position = '';
+      container.style.left = '';
+      container.style.top = '';
+      container.style.marginLeft = '';
+      container.style.marginTop = '';
+    }
   }
 
   /**
