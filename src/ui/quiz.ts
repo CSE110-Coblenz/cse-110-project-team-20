@@ -7,6 +7,7 @@ import type { EventBus } from '../engine/events.js';
 import { EventTopics } from '../engine/events/topics.js';
 
 export interface QuizQuestion {
+  id?: string;
   question: string;
   options: string[];
   correct: number;

@@ -31,6 +31,13 @@ import { DataCapsulesSystem } from '../engine/ecs/systems/dataCapsules.js';
 import { ObstaclesSystem } from '../engine/ecs/systems/obstacles.js';
 import { EntitiesLayer } from '../render/layers/entities.js';
 import { StarfieldLayer } from '../render/layers/starfield.js';
+import { QuizUI, type QuizData } from '../ui/quiz.js';
+import { QuizConfirmation } from '../ui/quizConfirmation.js';
+import quizDataJson from '../data/quizzes.json' with { type: 'json' };
+import {
+  checkAABBCollision,
+  createShipBoundingBox,
+} from '../engine/utils/collision.js';
 
 interface DestinationArea {
   x: number;
@@ -108,6 +115,8 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
   },
 ];
 
+const QUIZZES = quizDataJson as Record<string, QuizData>;
+
 export class MoonExplorationScene implements Scene {
   private readonly sceneManager: SceneManager;
   private readonly stage: RenderStage;
@@ -124,6 +133,8 @@ export class MoonExplorationScene implements Scene {
   private readonly triggersSystem: TriggersSystem;
   private readonly dataCapsulesSystem: DataCapsulesSystem;
   private readonly obstaclesSystem: ObstaclesSystem;
+  private readonly quizUI: QuizUI;
+  private readonly quizConfirmation: QuizConfirmation;
 
   private shipId: number | null = null;
   private refuelStationId: number | null = null;
@@ -135,6 +146,10 @@ export class MoonExplorationScene implements Scene {
   private capsuleEntities = new Map<string, number>();
   private capsuleNodes = new Map<string, Konva.Image>();
   private knockbackDisableUntil = 0;
+  private quizActive = false;
+  private quizCompleted = false;
+  private awaitingQuizDecision = false;
+  private destinationCooldownUntil = 0;
   private intelPanel: HTMLDivElement | null = null;
   private intelCountEl: HTMLParagraphElement | null = null;
   private intelFactEl: HTMLParagraphElement | null = null;
@@ -176,6 +191,8 @@ export class MoonExplorationScene implements Scene {
     this.playerInputSystem = new PlayerInputSystem(this.keyboard, 220);
     const fuelSystem = new FuelSystem(this.eventBus);
     this.triggersSystem = new TriggersSystem(fuelSystem);
+    this.quizUI = new QuizUI(this.eventBus);
+    this.quizConfirmation = new QuizConfirmation();
   }
 
   init(): void {
@@ -196,6 +213,7 @@ export class MoonExplorationScene implements Scene {
       EventTopics.DATA_CAPSULES_COMPLETE,
       this.handleCapsulesComplete
     );
+    this.eventBus.on(EventTopics.QUIZ_PASSED, this.handleQuizPassed);
 
     // Sync render layer state
     this.entitiesLayer.syncEntities();
@@ -344,6 +362,7 @@ export class MoonExplorationScene implements Scene {
     this.obstaclesSystem.update(dt, this.world);
     this.updateAsteroidNodes();
     this.starfieldLayer.update(dt);
+    this.checkDestinationReach();
 
     this.updateHud();
   }
@@ -371,11 +390,14 @@ export class MoonExplorationScene implements Scene {
       EventTopics.DATA_CAPSULES_COMPLETE,
       this.handleCapsulesComplete
     );
+    this.eventBus.off(EventTopics.QUIZ_PASSED, this.handleQuizPassed);
     this.keyboard.dispose();
     this.hud.dispose();
     this.dataCapsulesSystem.clear();
     this.playerInputSystem.clearPlayerEntity();
     this.destroyIntelPanel();
+    this.quizUI.dispose();
+    this.quizConfirmation.dispose();
 
     if (this.refuelNode) {
       this.refuelNode.destroy();
@@ -664,6 +686,110 @@ export class MoonExplorationScene implements Scene {
     if (this.intelPanel) {
       this.intelPanel.style.borderColor = '#88ffcc';
       this.intelPanel.style.boxShadow = '0 0 18px rgba(136, 255, 204, 0.6)';
+    }
+  };
+
+  private checkDestinationReach(): void {
+    if (
+      !this.moonDestinationArea ||
+      !this.shipId ||
+      this.quizCompleted ||
+      this.quizUI.isShowing() ||
+      this.quizActive ||
+      this.quizConfirmation.isShowing() ||
+      this.awaitingQuizDecision
+    ) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now < this.destinationCooldownUntil) return;
+
+    const shipPosition = this.world.getComponent<Position>(
+      this.shipId,
+      'position'
+    );
+    if (!shipPosition) return;
+
+    const shipBox = createShipBoundingBox(shipPosition.x, shipPosition.y);
+    if (checkAABBCollision(shipBox, this.moonDestinationArea)) {
+      this.destinationCooldownUntil = Date.now() + 1500;
+      this.handleMoonDestinationReached();
+    }
+  }
+
+  private handleMoonDestinationReached(): void {
+    const total = this.dataCapsulesSystem.getTotalCapsules();
+    const collected = this.dataCapsulesSystem.getCollectedCount();
+
+    if (total === 0) {
+      this.startMoonQuiz();
+      return;
+    }
+
+    if (collected < total) {
+      this.awaitingQuizDecision = true;
+      this.quizConfirmation.show({
+        title: 'Ready for the quiz?',
+        message: `You downloaded ${collected}/${total} intel capsules. Neil recommends collecting the rest, but you can take the quiz now.`,
+        confirmText: 'Take Quiz',
+        cancelText: 'Collect More Intel',
+        onConfirm: () => {
+          this.awaitingQuizDecision = false;
+          this.startMoonQuiz();
+        },
+        onCancel: () => {
+          this.awaitingQuizDecision = false;
+        },
+      });
+    } else {
+      this.startMoonQuiz();
+    }
+  }
+
+  private startMoonQuiz(): void {
+    if (this.quizActive) return;
+    this.quizConfirmation.hide();
+    const quiz = this.buildMoonQuiz();
+    this.quizActive = true;
+    this.quizUI.showQuiz(quiz);
+  }
+
+  private buildMoonQuiz(): QuizData {
+    const baseQuiz = QUIZZES['moon-quiz'];
+    const collectedFacts = this.dataCapsulesSystem.getCollectedFacts();
+    const questionIds = new Set(collectedFacts.map((fact) => fact.questionId));
+
+    let questions = baseQuiz.questions;
+    if (questionIds.size > 0) {
+      questions = baseQuiz.questions.filter((question) => {
+        if (!question.id) return false;
+        return questionIds.has(question.id);
+      });
+    }
+
+    if (questions.length === 0) {
+      questions = baseQuiz.questions;
+    }
+
+    return {
+      id: baseQuiz.id,
+      title: baseQuiz.title,
+      questions: questions.map((question) => ({ ...question })),
+    };
+  }
+
+  private handleQuizPassed = (payload: { quizId: string }): void => {
+    if (payload.quizId !== 'moon-quiz') {
+      return;
+    }
+    this.quizActive = false;
+    this.quizCompleted = true;
+    this.saveRepository.setQuizResult('moon-quiz', true);
+    this.saveRepository.setExplorationUnlocked(true);
+    if (this.intelFactEl) {
+      this.intelFactEl.textContent =
+        'Stellar work, cadet! You decoded every piece of lunar intel.';
     }
   };
 }
