@@ -6,6 +6,7 @@ import type { Scene, SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
 import type { World } from '../engine/ecs/world.js';
 import type { EventBus } from '../engine/events.js';
+import { EventTopics } from '../engine/events/topics.js';
 import type { SaveRepository } from '../persistence/SaveRepository.js';
 import type { GameOverUI } from '../ui/gameOver.js';
 import type { Keyboard } from '../input/keyboard.js';
@@ -134,6 +135,9 @@ export class MoonExplorationScene implements Scene {
   private capsuleEntities = new Map<string, number>();
   private capsuleNodes = new Map<string, Konva.Image>();
   private knockbackDisableUntil = 0;
+  private intelPanel: HTMLDivElement | null = null;
+  private intelCountEl: HTMLParagraphElement | null = null;
+  private intelFactEl: HTMLParagraphElement | null = null;
 
   constructor(
     sceneManager: SceneManager,
@@ -177,12 +181,21 @@ export class MoonExplorationScene implements Scene {
   init(): void {
     this.gameOverUI.hide();
     this.resetStage();
+    this.createIntelPanel();
 
     this.createShip();
     this.createRefuelStation();
     this.createMoonDestination();
     this.createAsteroids();
     this.createDataCapsules();
+    this.eventBus.on(
+      EventTopics.DATA_CAPSULE_COLLECTED,
+      this.handleCapsuleCollected
+    );
+    this.eventBus.on(
+      EventTopics.DATA_CAPSULES_COMPLETE,
+      this.handleCapsulesComplete
+    );
 
     // Sync render layer state
     this.entitiesLayer.syncEntities();
@@ -350,10 +363,19 @@ export class MoonExplorationScene implements Scene {
   }
 
   dispose(): void {
+    this.eventBus.off(
+      EventTopics.DATA_CAPSULE_COLLECTED,
+      this.handleCapsuleCollected
+    );
+    this.eventBus.off(
+      EventTopics.DATA_CAPSULES_COMPLETE,
+      this.handleCapsulesComplete
+    );
     this.keyboard.dispose();
     this.hud.dispose();
     this.dataCapsulesSystem.clear();
     this.playerInputSystem.clearPlayerEntity();
+    this.destroyIntelPanel();
 
     if (this.refuelNode) {
       this.refuelNode.destroy();
@@ -509,6 +531,11 @@ export class MoonExplorationScene implements Scene {
         definition.height
       );
     });
+
+    this.updateIntelProgress(
+      this.dataCapsulesSystem.getCollectedCount(),
+      this.dataCapsulesSystem.getTotalCapsules()
+    );
   }
 
   private createCapsuleNode(
@@ -543,5 +570,101 @@ export class MoonExplorationScene implements Scene {
       this.stage.backgroundLayer.batchDraw();
     }
   }
+
+  private createIntelPanel(): void {
+    this.destroyIntelPanel();
+
+    const container = document.createElement('div');
+    container.style.cssText = `
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      width: 320px;
+      padding: 18px;
+      border-radius: 12px;
+      background: rgba(8, 17, 37, 0.85);
+      border: 1px solid rgba(74, 158, 255, 0.4);
+      color: #f4f8ff;
+      font-family: 'Arial', sans-serif;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      z-index: 100;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = 'Lunar Intel Capsule';
+    title.style.cssText = `
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      color: #7ec9ff;
+      text-transform: uppercase;
+    `;
+
+    const countEl = document.createElement('p');
+    countEl.style.cssText = `
+      margin: 0 0 12px 0;
+      font-size: 15px;
+      font-weight: bold;
+      color: #bfe1ff;
+    `;
+
+    const factEl = document.createElement('p');
+    factEl.style.cssText = `
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #e6f1ff;
+    `;
+    factEl.textContent = 'Collect a data capsule to download Neil’s intel.';
+
+    container.appendChild(title);
+    container.appendChild(countEl);
+    container.appendChild(factEl);
+
+    document.body.appendChild(container);
+    this.intelPanel = container;
+    this.intelCountEl = countEl;
+    this.intelFactEl = factEl;
+
+    this.updateIntelProgress(
+      this.dataCapsulesSystem.getCollectedCount(),
+      this.dataCapsulesSystem.getTotalCapsules()
+    );
+  }
+
+  private updateIntelProgress(collected: number, total: number): void {
+    if (this.intelCountEl) {
+      const totalDisplay = total === 0 ? '?' : total.toString();
+      this.intelCountEl.textContent = `Intel Collected: ${collected}/${totalDisplay}`;
+    }
+  }
+
+  private destroyIntelPanel(): void {
+    this.intelPanel?.remove();
+    this.intelPanel = null;
+    this.intelCountEl = null;
+    this.intelFactEl = null;
+  }
+
+  private handleCapsuleCollected = (payload: {
+    capsuleId: string;
+    fact: CapsuleFact;
+    collectedCount: number;
+    totalCapsules: number;
+  }): void => {
+    this.updateIntelProgress(payload.collectedCount, payload.totalCapsules);
+    if (this.intelFactEl) {
+      this.intelFactEl.textContent = payload.fact.text;
+    }
+  };
+
+  private handleCapsulesComplete = (_payload: {
+    facts: CapsuleFact[];
+  }): void => {
+    if (this.intelPanel) {
+      this.intelPanel.style.borderColor = '#88ffcc';
+      this.intelPanel.style.boxShadow = '0 0 18px rgba(136, 255, 204, 0.6)';
+    }
+  };
 }
 
