@@ -15,6 +15,7 @@ import { NameScene } from './scenes/NameScene.js';
 import { ISSScene } from './scenes/ISSScene.js';
 import { CutsceneScene } from './scenes/CutsceneScene.js';
 import { MoonScene } from './scenes/MoonScene.js';
+import { MoonExplorationScene } from './scenes/MoonExplorationScene.js';
 import { GameOverUI } from './ui/gameOver.js';
 
 function init(): void {
@@ -61,6 +62,18 @@ function init(): void {
     'moon',
     () =>
       new MoonScene(sceneManager, stage, eventBus, saveRepository, gameOverUI)
+  );
+  sceneManager.register(
+    'moon-exploration',
+    () =>
+      new MoonExplorationScene(
+        sceneManager,
+        stage,
+        world,
+        eventBus,
+        saveRepository,
+        gameOverUI
+      )
   );
 
   // Create and register systems

@@ -137,7 +137,7 @@ export class CutsceneScene implements Scene {
 
     // Wait a moment then transition
     setTimeout(() => {
-      this.sceneManager.transitionTo('moon');
+      this.sceneManager.transitionTo('moon-exploration');
     }, 1000);
   }
 
