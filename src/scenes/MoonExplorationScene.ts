@@ -19,6 +19,10 @@ import { createPosition } from '../engine/ecs/components/position.js';
 import { createVelocity } from '../engine/ecs/components/velocity.js';
 import { createFuel } from '../engine/ecs/components/fuel.js';
 import { createSprite } from '../engine/ecs/components/sprite.js';
+import {
+  createDataCapsule,
+  type CapsuleFact,
+} from '../engine/ecs/components/dataCapsule.js';
 import { PlayerInputSystem } from '../engine/ecs/systems/playerInput.js';
 import { FuelSystem } from '../engine/ecs/systems/fuelSystem.js';
 import { TriggersSystem } from '../engine/ecs/systems/triggers.js';
@@ -33,6 +37,75 @@ interface DestinationArea {
   width: number;
   height: number;
 }
+
+interface CapsuleDefinition {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  facts: CapsuleFact[];
+}
+
+const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
+  {
+    id: 'tranquility-capsule',
+    x: 260,
+    y: 180,
+    width: 72,
+    height: 72,
+    facts: [
+      {
+        id: 'tranquility-apollo-landing',
+        text: 'Apollo 11’s Eagle module touched down in the Sea of Tranquility on July 20, 1969.',
+        questionId: 'moon-landing-site',
+      },
+      {
+        id: 'tranquility-basaltic-sea',
+        text: 'The Sea of Tranquility is a basaltic plain; ancient lava flows filled the basin to create its dark hue.',
+        questionId: 'moon-landing-site',
+      },
+    ],
+  },
+  {
+    id: 'tycho-capsule',
+    x: 520,
+    y: 360,
+    width: 72,
+    height: 72,
+    facts: [
+      {
+        id: 'tycho-young-crater',
+        text: 'Tycho Crater is only ~108 million years old — incredibly young for a lunar feature.',
+        questionId: 'tycho-radial-rays',
+      },
+      {
+        id: 'tycho-ray-system',
+        text: 'Impact ejecta from Tycho forms brilliant rays that streak across the near side and are visible even with binoculars.',
+        questionId: 'tycho-radial-rays',
+      },
+    ],
+  },
+  {
+    id: 'copernicus-capsule',
+    x: 900,
+    y: 220,
+    width: 72,
+    height: 72,
+    facts: [
+      {
+        id: 'copernicus-terra',
+        text: 'Copernicus Crater spans roughly 93 km and boasts terraced walls carved by landslides after impact.',
+        questionId: 'copernicus-structure',
+      },
+      {
+        id: 'copernicus-peaks',
+        text: 'Central peaks in Copernicus soar ~800 meters high, showcasing what makes a “complex crater.”',
+        questionId: 'copernicus-structure',
+      },
+    ],
+  },
+];
 
 export class MoonExplorationScene implements Scene {
   private readonly sceneManager: SceneManager;
@@ -58,6 +131,8 @@ export class MoonExplorationScene implements Scene {
   private moonDestinationNode: Konva.Image | null = null;
   private asteroidEntities = new Map<string, number>();
   private asteroidNodes = new Map<string, Konva.Circle | Konva.Image>();
+  private capsuleEntities = new Map<string, number>();
+  private capsuleNodes = new Map<string, Konva.Image>();
   private knockbackDisableUntil = 0;
 
   constructor(
@@ -107,6 +182,7 @@ export class MoonExplorationScene implements Scene {
     this.createRefuelStation();
     this.createMoonDestination();
     this.createAsteroids();
+    this.createDataCapsules();
 
     // Sync render layer state
     this.entitiesLayer.syncEntities();
@@ -302,6 +378,12 @@ export class MoonExplorationScene implements Scene {
     this.asteroidEntities.clear();
     this.asteroidNodes.forEach((node) => node.destroy());
     this.asteroidNodes.clear();
+    for (const entityId of this.capsuleEntities.values()) {
+      this.world.removeEntity(entityId);
+    }
+    this.capsuleEntities.clear();
+    this.capsuleNodes.forEach((node) => node.destroy());
+    this.capsuleNodes.clear();
 
     this.stage.backgroundLayer.destroyChildren();
     this.stage.entitiesLayer.destroyChildren();
@@ -395,6 +477,71 @@ export class MoonExplorationScene implements Scene {
 
     asteroidNode.x(asteroidInfo.x - asteroidNode.width() / 2);
     asteroidNode.y(asteroidInfo.y - asteroidNode.height() / 2);
+  }
+
+  private createDataCapsules(): void {
+    CAPSULE_DEFINITIONS.forEach((definition) => {
+      const entityId = this.world.createEntity();
+      this.world.addComponent(
+        entityId,
+        createPosition(definition.x, definition.y)
+      );
+      this.world.addComponent(
+        entityId,
+        createDataCapsule(definition.id, definition.facts)
+      );
+
+      this.capsuleEntities.set(definition.id, entityId);
+
+      this.dataCapsulesSystem.addCapsule({
+        id: definition.id,
+        entityId,
+        width: definition.width,
+        height: definition.height,
+        onCollected: () => this.removeCapsuleNode(definition.id),
+      });
+
+      this.createCapsuleNode(
+        definition.id,
+        definition.x,
+        definition.y,
+        definition.width,
+        definition.height
+      );
+    });
+  }
+
+  private createCapsuleNode(
+    capsuleId: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ): void {
+    const image = new Image();
+    image.src = new URL('../../assets/data-pad.png', import.meta.url).href;
+    image.onload = () => {
+      const node = new Konva.Image({
+        x,
+        y,
+        width,
+        height,
+        image,
+        opacity: 0.95,
+      });
+      this.capsuleNodes.set(capsuleId, node);
+      this.stage.backgroundLayer.add(node);
+      this.stage.backgroundLayer.batchDraw();
+    };
+  }
+
+  private removeCapsuleNode(capsuleId: string): void {
+    const node = this.capsuleNodes.get(capsuleId);
+    if (node) {
+      node.destroy();
+      this.capsuleNodes.delete(capsuleId);
+      this.stage.backgroundLayer.batchDraw();
+    }
   }
 }
 

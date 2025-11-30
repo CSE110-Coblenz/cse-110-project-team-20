@@ -4,6 +4,7 @@
     "title": "ISS Tutorial Quiz",
     "questions": [
       {
+        "id": "iss-acronym",
         "question": "What does ISS stand for?",
         "options": [
           "International Space Station",
@@ -14,6 +15,7 @@
         "correct": 0
       },
       {
+        "id": "iss-refuel-mechanic",
         "question": "How do you refuel your spacecraft?",
         "options": [
           "Land on a planet",
@@ -24,6 +26,7 @@
         "correct": 1
       },
       {
+        "id": "iss-fuel-empty-result",
         "question": "What happens when fuel runs out?",
         "options": [
           "You can still move slowly",
@@ -40,6 +43,7 @@
     "title": "Moon Quiz",
     "questions": [
       {
+        "id": "moon-landing-site",
         "question": "Which lunar site hosted the Apollo 11 landing?",
         "options": [
           "Sea of Tranquility",
@@ -50,6 +54,7 @@
         "correct": 0
       },
       {
+        "id": "tycho-radial-rays",
         "question": "Why does Tycho Crater stand out when you view the Moon from Earth?",
         "options": [
           "It is the tallest mountain range on the Moon",
@@ -60,6 +65,7 @@
         "correct": 1
       },
       {
+        "id": "copernicus-structure",
         "question": "What makes Copernicus Crater a textbook example of a complex crater?",
         "options": [
           "It is perfectly flat with no peaks",
