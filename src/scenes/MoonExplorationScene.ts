@@ -212,6 +212,8 @@ export class MoonExplorationScene implements Scene {
     this.cleanupDialogue();
     this.expandStageForExploration();
     this.resetStage();
+    // Update viewport offset after stage is expanded
+    this.updateViewportOffset();
     this.createIntelPanel();
 
     this.createShip();
