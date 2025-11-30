@@ -157,6 +157,9 @@ export class MoonExplorationScene implements Scene {
   private intelPanel: HTMLDivElement | null = null;
   private intelCountEl: HTMLParagraphElement | null = null;
   private intelFactEl: HTMLParagraphElement | null = null;
+  private originalStageWidth: number | null = null;
+  private originalStageHeight: number | null = null;
+  private stageResized = false;
 
   constructor(
     sceneManager: SceneManager,
@@ -204,6 +207,7 @@ export class MoonExplorationScene implements Scene {
     this.gameOverUI.hide();
     // Clean up any lingering dialogue from previous scenes
     this.cleanupDialogue();
+    this.expandStageForExploration();
     this.resetStage();
     this.createIntelPanel();
 
@@ -245,6 +249,52 @@ export class MoonExplorationScene implements Scene {
       this.stage.getWidth(),
       this.stage.getHeight()
     );
+  }
+
+  private expandStageForExploration(): void {
+    const desiredWidth = CONFIG.STAGE_WIDTH * 2;
+    const desiredHeight = CONFIG.STAGE_HEIGHT * 2;
+
+    if (!this.stageResized) {
+      this.originalStageWidth = this.stage.getWidth();
+      this.originalStageHeight = this.stage.getHeight();
+    }
+
+    if (
+      this.stage.getWidth() === desiredWidth &&
+      this.stage.getHeight() === desiredHeight
+    ) {
+      this.stageResized = true;
+      return;
+    }
+
+    this.setStageSize(desiredWidth, desiredHeight);
+    this.stageResized = true;
+    this.obstaclesSystem.setStageDimensions(desiredWidth, desiredHeight);
+  }
+
+  private restoreStageSize(): void {
+    if (
+      !this.stageResized ||
+      this.originalStageWidth === null ||
+      this.originalStageHeight === null
+    ) {
+      return;
+    }
+
+    this.setStageSize(this.originalStageWidth, this.originalStageHeight);
+    this.obstaclesSystem.setStageDimensions(
+      this.originalStageWidth,
+      this.originalStageHeight
+    );
+    this.stageResized = false;
+  }
+
+  private setStageSize(width: number, height: number): void {
+    this.stage.stage.size({ width, height });
+    const container = this.stage.stage.container();
+    container.style.width = `${width}px`;
+    container.style.height = `${height}px`;
   }
 
   /**
@@ -481,6 +531,7 @@ export class MoonExplorationScene implements Scene {
     this.stage.backgroundLayer.destroyChildren();
     this.stage.entitiesLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
+    this.restoreStageSize();
   }
 
   private createAsteroids(): void {
