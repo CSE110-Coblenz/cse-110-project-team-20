@@ -14,6 +14,7 @@ import Konva from 'konva';
 import { CONFIG } from '../config.js';
 import { Keyboard as KeyboardClass } from '../input/keyboard.js';
 import { HUD } from '../ui/hud.js';
+import type { Position } from '../engine/ecs/components/position.js';
 import { createPosition } from '../engine/ecs/components/position.js';
 import { createVelocity } from '../engine/ecs/components/velocity.js';
 import { createFuel } from '../engine/ecs/components/fuel.js';
@@ -22,6 +23,7 @@ import { PlayerInputSystem } from '../engine/ecs/systems/playerInput.js';
 import { FuelSystem } from '../engine/ecs/systems/fuelSystem.js';
 import { TriggersSystem } from '../engine/ecs/systems/triggers.js';
 import { DataCapsulesSystem } from '../engine/ecs/systems/dataCapsules.js';
+import { ObstaclesSystem } from '../engine/ecs/systems/obstacles.js';
 import { EntitiesLayer } from '../render/layers/entities.js';
 import { StarfieldLayer } from '../render/layers/starfield.js';
 
@@ -47,12 +49,16 @@ export class MoonExplorationScene implements Scene {
   private readonly playerInputSystem: PlayerInputSystem;
   private readonly triggersSystem: TriggersSystem;
   private readonly dataCapsulesSystem: DataCapsulesSystem;
+  private readonly obstaclesSystem: ObstaclesSystem;
 
   private shipId: number | null = null;
   private refuelStationId: number | null = null;
   private refuelNode: Konva.Image | null = null;
   private moonDestinationArea: DestinationArea | null = null;
   private moonDestinationNode: Konva.Image | null = null;
+  private asteroidEntities = new Map<string, number>();
+  private asteroidNodes = new Map<string, Konva.Circle | Konva.Image>();
+  private knockbackDisableUntil = 0;
 
   constructor(
     sceneManager: SceneManager,
@@ -79,6 +85,15 @@ export class MoonExplorationScene implements Scene {
     );
 
     this.dataCapsulesSystem = new DataCapsulesSystem(this.eventBus);
+    this.obstaclesSystem = new ObstaclesSystem();
+    this.obstaclesSystem.setStageDimensions(
+      this.stage.getWidth(),
+      this.stage.getHeight()
+    );
+    this.obstaclesSystem.setOnKnockbackCallback(() => {
+      const KNOCKBACK_DISABLE_MS = 200;
+      this.knockbackDisableUntil = Date.now() + KNOCKBACK_DISABLE_MS;
+    });
     this.playerInputSystem = new PlayerInputSystem(this.keyboard, 220);
     const fuelSystem = new FuelSystem(this.eventBus);
     this.triggersSystem = new TriggersSystem(fuelSystem);
@@ -91,6 +106,7 @@ export class MoonExplorationScene implements Scene {
     this.createShip();
     this.createRefuelStation();
     this.createMoonDestination();
+    this.createAsteroids();
 
     // Sync render layer state
     this.entitiesLayer.syncEntities();
@@ -127,7 +143,13 @@ export class MoonExplorationScene implements Scene {
     this.playerInputSystem.setCondition(() => {
       if (!this.shipId) return false;
       const fuel = this.world.getComponent<Fuel>(this.shipId, 'fuel');
-      return !!fuel && fuel.current > 0 && !this.gameOverUI.isShowing();
+      const now = Date.now();
+      return (
+        !!fuel &&
+        fuel.current > 0 &&
+        !this.gameOverUI.isShowing() &&
+        now >= this.knockbackDisableUntil
+      );
     });
   }
 
@@ -230,6 +252,8 @@ export class MoonExplorationScene implements Scene {
     this.playerInputSystem.update(dt, this.world);
     this.triggersSystem.update(dt, this.world);
     this.dataCapsulesSystem.update(dt, this.world);
+    this.obstaclesSystem.update(dt, this.world);
+    this.updateAsteroidNodes();
     this.starfieldLayer.update(dt);
 
     this.updateHud();
@@ -253,6 +277,7 @@ export class MoonExplorationScene implements Scene {
     this.keyboard.dispose();
     this.hud.dispose();
     this.dataCapsulesSystem.clear();
+    this.playerInputSystem.clearPlayerEntity();
 
     if (this.refuelNode) {
       this.refuelNode.destroy();
@@ -271,10 +296,105 @@ export class MoonExplorationScene implements Scene {
       this.world.removeEntity(this.refuelStationId);
       this.refuelStationId = null;
     }
+    for (const entityId of this.asteroidEntities.values()) {
+      this.world.removeEntity(entityId);
+    }
+    this.asteroidEntities.clear();
+    this.asteroidNodes.forEach((node) => node.destroy());
+    this.asteroidNodes.clear();
 
     this.stage.backgroundLayer.destroyChildren();
     this.stage.entitiesLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
+  }
+
+  private createAsteroids(): void {
+    const asteroidConfigs = [
+      { id: 'asteroid-1', x: 320, y: 280, width: 90, height: 90 },
+      { id: 'asteroid-2', x: 540, y: 160, width: 80, height: 80 },
+      { id: 'asteroid-3', x: 760, y: 420, width: 70, height: 70 },
+      { id: 'asteroid-4', x: 980, y: 260, width: 85, height: 85 },
+      { id: 'asteroid-5', x: 640, y: 520, width: 75, height: 75 },
+    ];
+
+    asteroidConfigs.forEach((config) => {
+      const entityId = this.world.createEntity();
+      const velocityMagnitude = 50 + Math.random() * 60;
+      const direction = Math.random() * Math.PI * 2;
+      const vx = Math.cos(direction) * velocityMagnitude;
+      const vy = Math.sin(direction) * velocityMagnitude;
+
+      this.world.addComponent(entityId, createPosition(config.x, config.y));
+      this.world.addComponent(entityId, createVelocity(vx, vy));
+      this.world.addComponent(entityId, createSprite('asteroid'));
+
+      this.asteroidEntities.set(config.id, entityId);
+
+      const hitboxWidth = config.width * CONFIG.ASTEROID_HITBOX_SHRINK;
+      const hitboxHeight = config.height * CONFIG.ASTEROID_HITBOX_SHRINK;
+      const offsetX = (config.width - hitboxWidth) / 2;
+      const offsetY = (config.height - hitboxHeight) / 2;
+
+      this.obstaclesSystem.addObstacle({
+        id: config.id,
+        entityId,
+        width: hitboxWidth,
+        height: hitboxHeight,
+        fuelDrain: CONFIG.FUEL_DRAIN_PER_COLLISION,
+        offsetX,
+        offsetY,
+      });
+
+      this.createAsteroidNode(config.id, config.width, config.height);
+    });
+  }
+
+  private createAsteroidNode(
+    asteroidId: string,
+    width: number,
+    height: number
+  ): void {
+    const asteroidImg = new Image();
+    asteroidImg.src = new URL('../../assets/asteroid-obstacle.png', import.meta.url)
+      .href;
+    asteroidImg.onload = () => {
+      const node = new Konva.Image({
+        x: 0,
+        y: 0,
+        width,
+        height,
+        image: asteroidImg,
+        opacity: 0.9,
+      });
+      this.asteroidNodes.set(asteroidId, node);
+      this.stage.backgroundLayer.add(node);
+      this.stage.backgroundLayer.batchDraw();
+      this.updateAsteroidNodePosition(asteroidId);
+    };
+  }
+
+  private updateAsteroidNodes(): void {
+    for (const asteroidId of this.asteroidNodes.keys()) {
+      this.updateAsteroidNodePosition(asteroidId);
+    }
+  }
+
+  private updateAsteroidNodePosition(asteroidId: string): void {
+    const entityId = this.asteroidEntities.get(asteroidId);
+    const asteroidNode = this.asteroidNodes.get(asteroidId);
+    if (!entityId || !asteroidNode) return;
+
+    const position = this.world.getComponent<Position>(entityId, 'position');
+    const obstacle = this.obstaclesSystem.getObstacle(asteroidId);
+    if (!position || !obstacle) return;
+
+    const asteroidInfo = this.obstaclesSystem.calculateAsteroidCenter(
+      position,
+      obstacle
+    );
+
+    asteroidNode.x(asteroidInfo.x - asteroidNode.width() / 2);
+    asteroidNode.y(asteroidInfo.y - asteroidNode.height() / 2);
   }
 }
 
