@@ -60,14 +60,14 @@ interface CapsuleDefinition {
 const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
   {
     id: 'tranquility-capsule',
-    x: 260,
-    y: 180,
+    x: 520, // Doubled from 260
+    y: 360, // Doubled from 180
     width: 72,
     height: 72,
     facts: [
       {
         id: 'tranquility-apollo-landing',
-        text: 'Apollo 11’s Eagle module touched down in the Sea of Tranquility on July 20, 1969.',
+        text: 'Apollo 11's Eagle module touched down in the Sea of Tranquility on July 20, 1969.',
         questionId: 'moon-landing-site',
       },
       {
@@ -79,8 +79,8 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
   },
   {
     id: 'tycho-capsule',
-    x: 520,
-    y: 360,
+    x: 1040, // Doubled from 520
+    y: 720, // Doubled from 360
     width: 72,
     height: 72,
     facts: [
@@ -98,8 +98,8 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
   },
   {
     id: 'copernicus-capsule',
-    x: 900,
-    y: 220,
+    x: 1800, // Doubled from 900
+    y: 440, // Doubled from 220
     width: 72,
     height: 72,
     facts: [
@@ -110,7 +110,7 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
       },
       {
         id: 'copernicus-peaks',
-        text: 'Central peaks in Copernicus soar ~800 meters high, showcasing what makes a “complex crater.”',
+        text: 'Central peaks in Copernicus soar ~800 meters high, showcasing what makes a "complex crater."',
         questionId: 'copernicus-structure',
       },
     ],
@@ -269,8 +269,8 @@ export class MoonExplorationScene implements Scene {
 
   private createShip(): void {
     this.shipId = this.world.createEntity();
-    const startX = 80;
-    const startY = this.stage.getHeight() - 200;
+    const startX = 160; // Doubled from 80
+    const startY = this.stage.getHeight() - 400; // Doubled from 200
 
     this.world.addComponent(this.shipId, createPosition(startX, startY));
     this.world.addComponent(this.shipId, createVelocity(0, 0));
@@ -328,18 +328,25 @@ export class MoonExplorationScene implements Scene {
   private createMoonDestination(): void {
     const destinationWidth = 180;
     const destinationHeight = 180;
-    const padding = 80;
+    const padding = 160; // Doubled from 80
     // Position moon icon to avoid overlap with fuel bar (200px wide + 20px margin = 220px from right)
     // Add extra margin to ensure visibility
     const fuelBarWidth = 220; // 200px bar + 20px margin
     const destinationX = this.stage.getWidth() - destinationWidth - fuelBarWidth;
     const destinationY = padding;
 
+    // Apply hitbox shrink factor similar to asteroids to prevent early triggering
+    const hitboxShrink = 0.75; // Same as ASTEROID_HITBOX_SHRINK
+    const hitboxWidth = destinationWidth * hitboxShrink;
+    const hitboxHeight = destinationHeight * hitboxShrink;
+    const hitboxOffsetX = (destinationWidth - hitboxWidth) / 2;
+    const hitboxOffsetY = (destinationHeight - hitboxHeight) / 2;
+    
     this.moonDestinationArea = {
-      x: destinationX,
-      y: destinationY,
-      width: destinationWidth,
-      height: destinationHeight,
+      x: destinationX + hitboxOffsetX,
+      y: destinationY + hitboxOffsetY,
+      width: hitboxWidth,
+      height: hitboxHeight,
     };
 
     this.loadMoonDestinationVisual(
@@ -478,11 +485,11 @@ export class MoonExplorationScene implements Scene {
 
   private createAsteroids(): void {
     const asteroidConfigs = [
-      { id: 'asteroid-1', x: 320, y: 280, width: 90, height: 90 },
-      { id: 'asteroid-2', x: 540, y: 160, width: 80, height: 80 },
-      { id: 'asteroid-3', x: 760, y: 420, width: 70, height: 70 },
-      { id: 'asteroid-4', x: 980, y: 260, width: 85, height: 85 },
-      { id: 'asteroid-5', x: 640, y: 520, width: 75, height: 75 },
+      { id: 'asteroid-1', x: 640, y: 560, width: 90, height: 90 }, // Doubled positions
+      { id: 'asteroid-2', x: 1080, y: 320, width: 80, height: 80 },
+      { id: 'asteroid-3', x: 1520, y: 840, width: 70, height: 70 },
+      { id: 'asteroid-4', x: 1960, y: 520, width: 85, height: 85 },
+      { id: 'asteroid-5', x: 1280, y: 1040, width: 75, height: 75 },
     ];
 
     asteroidConfigs.forEach((config) => {
@@ -803,14 +810,22 @@ export class MoonExplorationScene implements Scene {
     const questionIds = new Set(collectedFacts.map((fact) => fact.questionId));
 
     let questions = baseQuiz.questions;
+    
+    // If capsules were collected, only show questions that match collected facts
     if (questionIds.size > 0) {
       questions = baseQuiz.questions.filter((question) => {
         if (!question.id) return false;
         return questionIds.has(question.id);
       });
-    }
-
-    if (questions.length === 0) {
+      
+      // If we filtered out all questions, use fallback: show questions that match ANY collected fact
+      // This ensures quiz is always playable
+      if (questions.length === 0) {
+        // Fallback: use all questions if no matches found (shouldn't happen if IDs are correct)
+        questions = baseQuiz.questions;
+      }
+    } else {
+      // No capsules collected - show all questions (harder quiz)
       questions = baseQuiz.questions;
     }
 
@@ -873,8 +888,8 @@ export class MoonExplorationScene implements Scene {
         'position'
       );
       if (position) {
-        position.x = 80;
-        position.y = this.stage.getHeight() - 200;
+        position.x = 160; // Doubled from 80
+        position.y = this.stage.getHeight() - 400; // Doubled from 200
       }
 
       // Reset velocity
