@@ -67,7 +67,7 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
     facts: [
       {
         id: 'tranquility-apollo-landing',
-        text: 'Apollo 11's Eagle module touched down in the Sea of Tranquility on July 20, 1969.',
+        text: 'Apollo 11\'s Eagle module touched down in the Sea of Tranquility on July 20, 1969.',
         questionId: 'moon-landing-site',
       },
       {
