@@ -303,17 +303,15 @@ export class MoonExplorationScene implements Scene {
       // Set container to actual canvas size
       container.style.width = `${width}px`;
       container.style.height = `${height}px`;
-      // Scale down to fit viewport, centered
+      // Scale and center using transform - this works with flex centering
       container.style.transform = `scale(${scale})`;
       container.style.transformOrigin = 'center center';
-      // Center the container using the scaled dimensions
-      const scaledWidth = width * scale;
-      const scaledHeight = height * scale;
-      container.style.position = 'absolute';
-      container.style.left = '50%';
-      container.style.top = '50%';
-      container.style.marginLeft = `-${scaledWidth / 2}px`;
-      container.style.marginTop = `-${scaledHeight / 2}px`;
+      // Remove absolute positioning to let flex container center it
+      container.style.position = '';
+      container.style.left = '';
+      container.style.top = '';
+      container.style.marginLeft = '';
+      container.style.marginTop = '';
     } else {
       // Normal size - no scaling needed
       container.style.width = `${width}px`;
