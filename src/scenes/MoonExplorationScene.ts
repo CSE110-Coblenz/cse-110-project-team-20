@@ -157,6 +157,8 @@ export class MoonExplorationScene implements Scene {
   private intelPanel: HTMLDivElement | null = null;
   private intelCountEl: HTMLParagraphElement | null = null;
   private intelFactEl: HTMLParagraphElement | null = null;
+  private viewportOffsetX = 0;
+  private viewportOffsetY = 0;
   private originalStageWidth: number | null = null;
   private originalStageHeight: number | null = null;
   private stageResized = false;
@@ -179,10 +181,11 @@ export class MoonExplorationScene implements Scene {
     this.keyboard = new KeyboardClass();
     this.hud = new HUD();
     this.entitiesLayer = new EntitiesLayer(this.stage.entitiesLayer, this.world);
+    // Starfield will be initialized in resetStage() with viewport size
     this.starfieldLayer = new StarfieldLayer(
       this.stage.backgroundLayer,
-      this.stage.getWidth(),
-      this.stage.getHeight()
+      CONFIG.STAGE_WIDTH, // Use viewport size, not stage size
+      CONFIG.STAGE_HEIGHT
     );
 
     this.dataCapsulesSystem = new DataCapsulesSystem(this.eventBus);
@@ -243,11 +246,12 @@ export class MoonExplorationScene implements Scene {
     this.stage.entitiesLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
 
-    // Rebuild starfield for the new scene
+    // Rebuild starfield for VIEWPORT size (not map size)
+    // Starfield should cover the visible area, not the entire map
     this.starfieldLayer = new StarfieldLayer(
       this.stage.backgroundLayer,
-      this.stage.getWidth(),
-      this.stage.getHeight()
+      CONFIG.STAGE_WIDTH, // Viewport width
+      CONFIG.STAGE_HEIGHT // Viewport height
     );
   }
 
@@ -291,31 +295,37 @@ export class MoonExplorationScene implements Scene {
   }
 
   private setStageSize(width: number, height: number): void {
+    // Stage size is the full game world (2560x1440)
     this.stage.stage.size({ width, height });
     const container = this.stage.stage.container();
     
-    // If stage is larger than default, scale it down to fit viewport
+    // If stage is larger than default, use viewport system
     if (width > CONFIG.STAGE_WIDTH || height > CONFIG.STAGE_HEIGHT) {
-      const scaleX = CONFIG.STAGE_WIDTH / width;
-      const scaleY = CONFIG.STAGE_HEIGHT / height;
-      const scale = Math.min(scaleX, scaleY); // Use smaller scale to fit both dimensions
-      
-      // Set container to SCALED size so flex can center it properly
-      const scaledWidth = width * scale;
-      const scaledHeight = height * scale;
-      container.style.width = `${scaledWidth}px`;
-      container.style.height = `${scaledHeight}px`;
-      // Scale the canvas content to fit the container
-      container.style.transform = `scale(${scale})`;
-      container.style.transformOrigin = 'top left';
-      // Ensure container is in normal flow for flex centering
+      // Container is viewport size (1280x720) - this is what flex centers
+      container.style.width = `${CONFIG.STAGE_WIDTH}px`;
+      container.style.height = `${CONFIG.STAGE_HEIGHT}px`;
+      container.style.transform = '';
+      container.style.transformOrigin = '';
       container.style.position = '';
       container.style.left = '';
       container.style.top = '';
       container.style.marginLeft = '';
       container.style.marginTop = '';
+      
+      // Calculate viewport offset to center on map center
+      const mapCenterX = width / 2;
+      const mapCenterY = height / 2;
+      const viewportCenterX = CONFIG.STAGE_WIDTH / 2;
+      const viewportCenterY = CONFIG.STAGE_HEIGHT / 2;
+      
+      // Offset layers so map center aligns with viewport center
+      this.viewportOffsetX = viewportCenterX - mapCenterX;
+      this.viewportOffsetY = viewportCenterY - mapCenterY;
+      
+      // Apply offset to layers
+      this.updateViewportOffset();
     } else {
-      // Normal size - no scaling needed
+      // Normal size - no viewport offset needed
       container.style.width = `${width}px`;
       container.style.height = `${height}px`;
       container.style.transform = '';
@@ -325,7 +335,20 @@ export class MoonExplorationScene implements Scene {
       container.style.top = '';
       container.style.marginLeft = '';
       container.style.marginTop = '';
+      this.viewportOffsetX = 0;
+      this.viewportOffsetY = 0;
+      this.updateViewportOffset();
     }
+  }
+  
+  private updateViewportOffset(): void {
+    // Apply viewport offset to background and entities layers
+    // This creates a "camera" effect showing the center of the map
+    this.stage.backgroundLayer.x(this.viewportOffsetX);
+    this.stage.backgroundLayer.y(this.viewportOffsetY);
+    this.stage.entitiesLayer.x(this.viewportOffsetX);
+    this.stage.entitiesLayer.y(this.viewportOffsetY);
+    // UI layer stays at 0,0 (always visible)
   }
 
   /**
