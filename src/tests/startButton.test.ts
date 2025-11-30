@@ -28,7 +28,7 @@ describe('TitleScene', () => {
       arc: vi.fn(),
       rect: vi.fn(),
       measureText: vi.fn(() => ({ width: 100 })),
-    } as CanvasRenderingContext2D);
+    } as unknown as CanvasRenderingContext2D);
 
     mockSceneManager = {
       transitionTo: vi.fn(),
@@ -50,7 +50,7 @@ describe('TitleScene', () => {
       hide: vi.fn(),
       isShowing: vi.fn(() => false),
       dispose: vi.fn(),
-    } as GameOverUI;
+    } as unknown as GameOverUI;
 
     document.body.innerHTML = '';
 
