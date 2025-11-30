@@ -13,7 +13,7 @@ export class HUD {
       position: fixed;
       top: 20px;
       right: 20px;
-      z-index: 100;
+      z-index: 110;
       color: white;
       font-family: Arial, sans-serif;
     `;

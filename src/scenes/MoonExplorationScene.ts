@@ -197,6 +197,8 @@ export class MoonExplorationScene implements Scene {
 
   init(): void {
     this.gameOverUI.hide();
+    // Clean up any lingering dialogue from previous scenes
+    this.cleanupDialogue();
     this.resetStage();
     this.createIntelPanel();
 
@@ -231,6 +233,26 @@ export class MoonExplorationScene implements Scene {
       this.stage.getWidth(),
       this.stage.getHeight()
     );
+  }
+
+  /**
+   * Clean up any lingering dialogue containers from previous scenes
+   * Dialogue should only appear in tutorial scenes, not in moon exploration
+   */
+  private cleanupDialogue(): void {
+    // Find dialogue containers by their distinctive styling (z-index 2000, bottom position)
+    const allDivs = document.querySelectorAll('div');
+    for (const div of allDivs) {
+      const style = window.getComputedStyle(div);
+      // Dialogue containers have z-index 2000 and are positioned at bottom
+      if (
+        style.zIndex === '2000' &&
+        style.position === 'fixed' &&
+        (style.bottom !== 'auto' || div.textContent?.includes('Neil'))
+      ) {
+        div.remove();
+      }
+    }
   }
 
   private createShip(): void {
@@ -292,7 +314,10 @@ export class MoonExplorationScene implements Scene {
     const destinationWidth = 180;
     const destinationHeight = 180;
     const padding = 80;
-    const destinationX = this.stage.getWidth() - destinationWidth - padding;
+    // Position moon icon to avoid overlap with fuel bar (200px wide + 20px margin = 220px from right)
+    // Add extra margin to ensure visibility
+    const fuelBarWidth = 220; // 200px bar + 20px margin
+    const destinationX = this.stage.getWidth() - destinationWidth - fuelBarWidth;
     const destinationY = padding;
 
     this.moonDestinationArea = {
@@ -599,8 +624,8 @@ export class MoonExplorationScene implements Scene {
     const container = document.createElement('div');
     container.style.cssText = `
       position: fixed;
-      top: 24px;
-      right: 24px;
+      top: 20px;
+      left: 20px;
       width: 320px;
       padding: 18px;
       border-radius: 12px;
@@ -609,7 +634,7 @@ export class MoonExplorationScene implements Scene {
       color: #f4f8ff;
       font-family: 'Arial', sans-serif;
       box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-      z-index: 100;
+      z-index: 90;
     `;
 
     const title = document.createElement('h3');
