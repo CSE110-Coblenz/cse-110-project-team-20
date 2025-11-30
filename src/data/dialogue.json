@@ -47,5 +47,32 @@
       "character": "Neil",
       "text": "Excellent work! You've successfully refueled. Now you're ready to continue your journey through space."
     }
+  ],
+  "moon-exploration-tutorial": [
+    {
+      "id": "moon-welcome",
+      "character": "Neil DePaws Tyson",
+      "text": "Welcome to the Moon exploration zone! Here you'll collect lunar intel and test your knowledge."
+    },
+    {
+      "id": "moon-movement",
+      "character": "Neil DePaws Tyson",
+      "text": "Use WASD or arrow keys to navigate your ship. Watch out for moving asteroids - they'll drain your fuel if you hit them!"
+    },
+    {
+      "id": "moon-data-capsules",
+      "character": "Neil DePaws Tyson",
+      "text": "Look for data capsules scattered around the map. Collect them to learn lunar facts that will help you on the quiz!"
+    },
+    {
+      "id": "moon-quiz-strategy",
+      "character": "Neil DePaws Tyson",
+      "text": "You can take the quiz at the moon icon anytime, but collecting all data capsules first will make it much easier. Without them, you'll face harder questions!"
+    },
+    {
+      "id": "moon-refuel",
+      "character": "Neil DePaws Tyson",
+      "text": "There's a refuel station in the center of the map if you need more fuel. Good luck, explorer!"
+    }
   ]
 }

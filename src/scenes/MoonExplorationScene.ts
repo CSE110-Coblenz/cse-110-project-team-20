@@ -17,6 +17,7 @@ import { Keyboard as KeyboardClass } from '../input/keyboard.js';
 import { HUD } from '../ui/hud.js';
 import type { Position } from '../engine/ecs/components/position.js';
 import { createPosition } from '../engine/ecs/components/position.js';
+import type { Velocity } from '../engine/ecs/components/velocity.js';
 import { createVelocity } from '../engine/ecs/components/velocity.js';
 import { createFuel } from '../engine/ecs/components/fuel.js';
 import { createSprite } from '../engine/ecs/components/sprite.js';
@@ -33,6 +34,7 @@ import { EntitiesLayer } from '../render/layers/entities.js';
 import { StarfieldLayer } from '../render/layers/starfield.js';
 import { QuizUI, type QuizData } from '../ui/quiz.js';
 import { QuizConfirmation } from '../ui/quizConfirmation.js';
+import { DialogueManager } from '../content/dialogue.js';
 import quizDataJson from '../data/quizzes.json' with { type: 'json' };
 import {
   checkAABBCollision,
@@ -135,6 +137,8 @@ export class MoonExplorationScene implements Scene {
   private readonly obstaclesSystem: ObstaclesSystem;
   private readonly quizUI: QuizUI;
   private readonly quizConfirmation: QuizConfirmation;
+  private readonly dialogueManager: DialogueManager;
+  private tutorialShown = false;
 
   private shipId: number | null = null;
   private refuelStationId: number | null = null;
@@ -193,6 +197,7 @@ export class MoonExplorationScene implements Scene {
     this.triggersSystem = new TriggersSystem(fuelSystem);
     this.quizUI = new QuizUI(this.eventBus);
     this.quizConfirmation = new QuizConfirmation();
+    this.dialogueManager = new DialogueManager();
   }
 
   init(): void {
@@ -216,6 +221,13 @@ export class MoonExplorationScene implements Scene {
       this.handleCapsulesComplete
     );
     this.eventBus.on(EventTopics.QUIZ_PASSED, this.handleQuizPassed);
+    this.eventBus.on(EventTopics.FUEL_EMPTY, this.handleFuelEmpty);
+
+    // Show tutorial on first load
+    if (!this.tutorialShown) {
+      this.showTutorial();
+      this.tutorialShown = true;
+    }
 
     // Sync render layer state
     this.entitiesLayer.syncEntities();
@@ -277,6 +289,9 @@ export class MoonExplorationScene implements Scene {
         !!fuel &&
         fuel.current > 0 &&
         !this.gameOverUI.isShowing() &&
+        !this.quizUI.isShowing() &&
+        !this.quizConfirmation.isShowing() &&
+        !this.dialogueManager.isShowing() &&
         now >= this.knockbackDisableUntil
       );
     });
@@ -416,8 +431,10 @@ export class MoonExplorationScene implements Scene {
       this.handleCapsulesComplete
     );
     this.eventBus.off(EventTopics.QUIZ_PASSED, this.handleQuizPassed);
+    this.eventBus.off(EventTopics.FUEL_EMPTY, this.handleFuelEmpty);
     this.keyboard.dispose();
     this.hud.dispose();
+    this.dialogueManager.dispose();
     this.dataCapsulesSystem.clear();
     this.playerInputSystem.clearPlayerEntity();
     this.destroyIntelPanel();
@@ -817,5 +834,105 @@ export class MoonExplorationScene implements Scene {
         'Stellar work, cadet! You decoded every piece of lunar intel.';
     }
   };
+
+  private handleFuelEmpty = (): void => {
+    if (!this.shipId) return;
+    const velocity = this.world.getComponent(
+      this.shipId,
+      'velocity'
+    );
+    if (velocity) {
+      velocity.vx = 0;
+      velocity.vy = 0;
+    }
+    this.showFuelEmptyDialog();
+  };
+
+  private showFuelEmptyDialog(): void {
+    this.gameOverUI.show({
+      title: 'Out of Fuel!',
+      message:
+        "Your spacecraft has run out of fuel. Don't worry, you can restart and try again!",
+      buttonText: 'Restart',
+      onRestart: () => {
+        this.restartMoonExploration();
+      },
+    });
+  }
+
+  private restartMoonExploration(): void {
+    this.gameOverUI.hide();
+    // Clean up any lingering dialogue
+    this.cleanupDialogue();
+    this.dialogueManager.hide();
+
+    // Reset ship position
+    if (this.shipId) {
+      const position = this.world.getComponent<Position>(
+        this.shipId,
+        'position'
+      );
+      if (position) {
+        position.x = 80;
+        position.y = this.stage.getHeight() - 200;
+      }
+
+      // Reset velocity
+      const velocity = this.world.getComponent(
+        this.shipId,
+        'velocity'
+      );
+      if (velocity) {
+        velocity.vx = 0;
+        velocity.vy = 0;
+      }
+
+      // Reset fuel
+      const fuel = this.world.getComponent<Fuel>(this.shipId, 'fuel');
+      if (fuel) {
+        fuel.current = CONFIG.FUEL_INITIAL;
+      }
+
+      // Reset rotation
+      if (position) {
+        position.angle = 0;
+      }
+    }
+
+    // Reset quiz state
+    this.quizActive = false;
+    this.quizCompleted = false;
+    this.awaitingQuizDecision = false;
+    this.quizUI.dispose();
+    this.quizConfirmation.hide();
+
+    // Reset data capsules
+    this.dataCapsulesSystem.clear();
+    
+    // Clear obstacles and recreate asteroids
+    for (const entityId of this.asteroidEntities.values()) {
+      this.world.removeEntity(entityId);
+    }
+    this.asteroidEntities.clear();
+    this.asteroidNodes.forEach((node) => node.destroy());
+    this.asteroidNodes.clear();
+    
+    // Recreate asteroids and capsules
+    this.createAsteroids();
+    this.createDataCapsules();
+    
+    // Sync entities for rendering
+    this.entitiesLayer.syncEntities();
+
+    // Show tutorial again
+    this.showTutorial();
+  }
+
+  private showTutorial(): void {
+    const playerName = this.saveRepository.getPlayerName() || 'Explorer';
+    this.dialogueManager.showSequence('moon-exploration-tutorial', () => {
+      // Tutorial complete - player can now move
+    });
+  }
 }
 
