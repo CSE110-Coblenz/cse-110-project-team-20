@@ -76,5 +76,317 @@
         "correct": 2
       }
     ]
+  },
+  "mercury-quiz": {
+    "id": "mercury-quiz",
+    "title": "Mercury Quiz",
+    "questions": [
+      {
+        "id": "mercury-day-length",
+        "question": "Why is a day on Mercury (sunrise to sunrise) so long compared to an Earth day?",
+        "options": [
+          "Mercury spins very slowly on its axis",
+          "Mercury is very far from the Sun",
+          "Mercury has thick clouds that block sunlight",
+          "Mercury has many moons that slow it down"
+        ],
+        "correct": 0
+      },
+      {
+        "id": "mercury-atmosphere",
+        "question": "What is true about Mercury's atmosphere?",
+        "options": [
+          "It is thick and keeps temperatures mild",
+          "It is mostly made of oxygen",
+          "It is extremely thin and cannot trap heat",
+          "It is similar to Earth’s atmosphere"
+        ],
+        "correct": 2
+      },
+      {
+        "id": "mercury-temp-variation",
+        "question": "Why does Mercury experience such extreme temperature changes between day and night?",
+        "options": [
+          "It has a thick atmosphere",
+          "It rotates very quickly",
+          "It has almost no atmosphere to hold in heat",
+          "It is tilted on its side"
+        ],
+        "correct": 2
+      }
+    ]
+  },
+  "earth-quiz": {
+    "id": "earth-quiz",
+    "title": "Earth Quiz",
+    "questions": [
+      {
+        "id": "earth-liquid-water",
+        "question": "What makes Earth unique compared to other known planets in our solar system?",
+        "options": [
+          "It has the most moons",
+          "It has stable liquid water on its surface",
+          "It is the hottest planet",
+          "It has the strongest gravity"
+        ],
+        "correct": 1
+      },
+      {
+        "id": "earth-atmosphere-role",
+        "question": "What is one important role of Earth's atmosphere?",
+        "options": [
+          "It blocks all sunlight",
+          "It creates constant storms",
+          "It shields life from harmful radiation and helps regulate temperature",
+          "It keeps the oceans frozen"
+        ],
+        "correct": 2
+      },
+      {
+        "id": "earth-moon-tides",
+        "question": "How does the Moon affect Earth?",
+        "options": [
+          "It makes Earth spin faster",
+          "It causes ocean tides through its gravity",
+          "It heats up Earth’s core",
+          "It blocks Earth’s atmosphere"
+        ],
+        "correct": 1
+      }
+    ]
+  },
+  "venus-quiz": {
+    "id": "venus-quiz",
+    "title": "Venus Quiz",
+    "questions": [
+      {
+        "id": "venus-hottest-planet",
+        "question": "Why is Venus the hottest planet in the solar system?",
+        "options": [
+          "It is closest to the Sun",
+          "Its thick CO₂ atmosphere traps heat in a runaway greenhouse effect",
+          "It has an icy surface that reflects heat",
+          "It has many active volcanoes that cool the surface"
+        ],
+        "correct": 1
+      },
+      {
+        "id": "venus-atmosphere",
+        "question": "What is Venus's atmosphere mostly like?",
+        "options": [
+          "Thin and made of oxygen",
+          "Almost no atmosphere",
+          "Thick carbon dioxide with clouds of sulfuric acid",
+          "Mostly nitrogen and oxygen like Earth"
+        ],
+        "correct": 2
+      },
+      {
+        "id": "venus-rotation",
+        "question": "How does Venus's rotation compare to most other planets?",
+        "options": [
+          "It spins much faster than Earth",
+          "It does not rotate at all",
+          "It rotates backward so the Sun appears to rise in the west",
+          "It rotates on its side like Uranus"
+        ],
+        "correct": 2
+      }
+    ]
+  },
+  "mars-quiz": {
+    "id": "mars-quiz",
+    "title": "Mars Quiz",
+    "questions": [
+      {
+        "id": "mars-olympus-mons",
+        "question": "What is Olympus Mons on Mars?",
+        "options": [
+          "A giant canyon",
+          "The largest volcano in the solar system",
+          "A frozen lake",
+          "A deep impact crater"
+        ],
+        "correct": 1
+      },
+      {
+        "id": "mars-water-evidence",
+        "question": "Which feature on Mars suggests it once had liquid water?",
+        "options": [
+          "Polar ice caps of water and frozen carbon dioxide",
+          "A thick oxygen-rich atmosphere",
+          "Blue oceans on the surface",
+          "A ring system like Saturn"
+        ],
+        "correct": 0
+      },
+      {
+        "id": "mars-atmosphere",
+        "question": "What is true about the atmosphere on Mars?",
+        "options": [
+          "It is thick and keeps the planet very warm",
+          "It is thin, so temperatures can change a lot between day and night",
+          "It is exactly like Earth’s atmosphere",
+          "It is made of liquid water clouds"
+        ],
+        "correct": 1
+      }
+    ]
+  },
+  "jupiter-quiz": {
+    "id": "jupiter-quiz",
+    "title": "Jupiter Quiz",
+    "questions": [
+      {
+        "id": "jupiter-largest-planet",
+        "question": "How does Jupiter compare in size to the other planets?",
+        "options": [
+          "It is the smallest planet",
+          "It is similar in size to Earth",
+          "It is the largest planet in the solar system",
+          "It is slightly smaller than Mars"
+        ],
+        "correct": 2
+      },
+      {
+        "id": "jupiter-great-red-spot",
+        "question": "What is Jupiter’s Great Red Spot?",
+        "options": [
+          "A frozen lake",
+          "A giant long-lasting storm",
+          "A large crater",
+          "A glowing volcano"
+        ],
+        "correct": 1
+      },
+      {
+        "id": "jupiter-moons",
+        "question": "What is special about Jupiter’s moons?",
+        "options": [
+          "Jupiter has no moons",
+          "It has only one small moon",
+          "It has many moons, including the four large Galilean moons",
+          "All of its moons are larger than Earth"
+        ],
+        "correct": 2
+      }
+    ]
+  },
+  "saturn-quiz": {
+    "id": "saturn-quiz",
+    "title": "Saturn Quiz",
+    "questions": [
+      {
+        "id": "saturn-rings",
+        "question": "What are Saturn’s rings mostly made of?",
+        "options": [
+          "Solid metal",
+          "Clouds of gas only",
+          "Ice and rock particles",
+          "Liquid water"
+        ],
+        "correct": 2
+      },
+      {
+        "id": "saturn-density",
+        "question": "Why do people say Saturn could float in a giant bathtub?",
+        "options": [
+          "It is very small",
+          "It is less dense than water overall",
+          "It is made entirely of ice",
+          "It spins very quickly"
+        ],
+        "correct": 1
+      },
+      {
+        "id": "saturn-titan",
+        "question": "What is special about Saturn’s moon Titan?",
+        "options": [
+          "It has no atmosphere",
+          "It is made only of metal",
+          "It has a thick atmosphere and lakes of liquid hydrocarbons",
+          "It orbits inside Saturn’s rings"
+        ],
+        "correct": 2
+      }
+    ]
+  },
+  "uranus-quiz": {
+    "id": "uranus-quiz",
+    "title": "Uranus Quiz",
+    "questions": [
+      {
+        "id": "uranus-tilt",
+        "question": "How is Uranus’s tilt unusual?",
+        "options": [
+          "It has no tilt at all",
+          "It is tilted so far it essentially rolls around the Sun",
+          "It tilts toward the Sun only in winter",
+          "It changes tilt every year"
+        ],
+        "correct": 1
+      },
+      {
+        "id": "uranus-ice-giant",
+        "question": "Why is Uranus called an ice giant?",
+        "options": [
+          "Its surface is covered in solid ice oceans",
+          "Its interior is rich in icy materials like water, ammonia, and methane",
+          "It has no gas at all",
+          "It orbits inside the asteroid belt"
+        ],
+        "correct": 1
+      },
+      {
+        "id": "uranus-temperature",
+        "question": "What is notable about temperatures on Uranus?",
+        "options": [
+          "It is the warmest planet",
+          "It releases a lot of internal heat",
+          "It is one of the coldest planets because it releases little internal heat",
+          "Its temperature never changes"
+        ],
+        "correct": 2
+      }
+    ]
+  },
+  "neptune-quiz": {
+    "id": "neptune-quiz",
+    "title": "Neptune Quiz",
+    "questions": [
+      {
+        "id": "neptune-winds",
+        "question": "What is special about the winds on Neptune?",
+        "options": [
+          "They are the slowest in the solar system",
+          "They change direction every second",
+          "They are the fastest known winds in the solar system",
+          "They only blow at the equator"
+        ],
+        "correct": 2
+      },
+      {
+        "id": "neptune-storms",
+        "question": "What are Neptune’s dark spots?",
+        "options": [
+          "Holes in the planet’s surface",
+          "Large, long-lasting storm systems",
+          "Frozen lakes",
+          "Gigantic volcanoes"
+        ],
+        "correct": 1
+      },
+      {
+        "id": "neptune-orbit",
+        "question": "How long does it take Neptune to orbit the Sun once?",
+        "options": [
+          "About 1 Earth year",
+          "About 12 Earth years",
+          "About 30 Earth years",
+          "About 165 Earth years"
+        ],
+        "correct": 3
+      }
+    ]
   }
 }

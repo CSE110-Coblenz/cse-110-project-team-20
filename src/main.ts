@@ -15,7 +15,7 @@ import { NameScene } from './scenes/NameScene.js';
 import { ISSScene } from './scenes/ISSScene.js';
 import { CutsceneScene } from './scenes/CutsceneScene.js';
 import { MoonScene } from './scenes/MoonScene.js';
-import { MoonExplorationScene } from './scenes/MoonExplorationScene.js';
+import { PlanetExplorationScene } from './scenes/MoonExplorationScene.js';
 import { PlaceholderPlanetScene } from './scenes/PlaceholderPlanetScene.js';
 import { GameOverUI } from './ui/gameOver.js';
 import { PLANETS } from './ui/planetSelection.js';
@@ -68,7 +68,7 @@ function init(): void {
   sceneManager.register(
     'moon-exploration',
     () =>
-      new MoonExplorationScene(
+      new PlanetExplorationScene(
         sceneManager,
         stage,
         world,
@@ -81,7 +81,7 @@ function init(): void {
   sceneManager.register(
     'mercury-exploration',
     () =>
-      new MoonExplorationScene(
+      new PlanetExplorationScene(
         sceneManager,
         stage,
         world,
@@ -94,7 +94,7 @@ function init(): void {
   sceneManager.register(
     'earth-exploration',
     () =>
-      new MoonExplorationScene(
+      new PlanetExplorationScene(
         sceneManager,
         stage,
         world,
@@ -104,13 +104,97 @@ function init(): void {
         'earth'
       )
   );
+  sceneManager.register(
+    'venus-exploration',
+    () =>
+      new PlanetExplorationScene(
+        sceneManager,
+        stage,
+        world,
+        eventBus,
+        saveRepository,
+        gameOverUI,
+        'venus'
+      )
+  );
+  sceneManager.register(
+    'mars-exploration',
+    () =>
+      new PlanetExplorationScene(
+        sceneManager,
+        stage,
+        world,
+        eventBus,
+        saveRepository,
+        gameOverUI,
+        'mars'
+      )
+  );
+  sceneManager.register(
+    'jupiter-exploration',
+    () =>
+      new PlanetExplorationScene(
+        sceneManager,
+        stage,
+        world,
+        eventBus,
+        saveRepository,
+        gameOverUI,
+        'jupiter'
+      )
+  );
+  sceneManager.register(
+    'saturn-exploration',
+    () =>
+      new PlanetExplorationScene(
+        sceneManager,
+        stage,
+        world,
+        eventBus,
+        saveRepository,
+        gameOverUI,
+        'saturn'
+      )
+  );
+  sceneManager.register(
+    'uranus-exploration',
+    () =>
+      new PlanetExplorationScene(
+        sceneManager,
+        stage,
+        world,
+        eventBus,
+        saveRepository,
+        gameOverUI,
+        'uranus'
+      )
+  );
+  sceneManager.register(
+    'neptune-exploration',
+    () =>
+      new PlanetExplorationScene(
+        sceneManager,
+        stage,
+        world,
+        eventBus,
+        saveRepository,
+        gameOverUI,
+        'neptune'
+      )
+  );
 
   // Register placeholder scenes for planets (can be replaced with full implementations later)
   PLANETS.forEach((planet) => {
-    // Mercury and Earth have full exploration scenes, so skip placeholder for them
+    // Planets with full exploration scenes skip the placeholder
     if (
       planet.sceneId === 'mercury-exploration' ||
-      planet.sceneId === 'earth-exploration'
+      planet.sceneId === 'earth-exploration' ||
+      planet.sceneId === 'venus-exploration' ||
+      planet.sceneId === 'mars-exploration' ||
+      planet.sceneId === 'jupiter-exploration' ||
+      planet.sceneId === 'saturn-exploration' ||
+      planet.sceneId === 'uranus-exploration' ||
+      planet.sceneId === 'neptune-exploration'
     ) {
       return;
     }

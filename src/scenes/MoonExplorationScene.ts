@@ -58,10 +58,65 @@ interface CapsuleDefinition {
   facts: CapsuleFact[];
 }
 
+type PlanetId =
+  | 'moon'
+  | 'mercury'
+  | 'earth'
+  | 'venus'
+  | 'mars'
+  | 'jupiter'
+  | 'saturn'
+  | 'uranus'
+  | 'neptune';
+
+interface PlanetConfig {
+  asteroidCount: number;
+  asteroidSpeedMin: number;
+  asteroidSpeedMax: number;
+  refuelUses: number;
+}
+
 // Scale factor for moon exploration - makes everything smaller to feel like a bigger map
 const MOON_SCALE = 0.7; // 70% size
 
-const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
+function getPlanetConfig(planetId: PlanetId): PlanetConfig {
+  // Difficulty: Moon is baseline; planets get harder the farther they are,
+  // but nothing is easier than Moon/ISS.
+  switch (planetId) {
+    case 'mercury':
+      return { asteroidCount: 6, asteroidSpeedMin: 60, asteroidSpeedMax: 120, refuelUses: 2 };
+    case 'earth':
+      return { asteroidCount: 7, asteroidSpeedMin: 70, asteroidSpeedMax: 130, refuelUses: 2 };
+    case 'venus':
+      return { asteroidCount: 8, asteroidSpeedMin: 75, asteroidSpeedMax: 135, refuelUses: 2 };
+    case 'mars':
+      return { asteroidCount: 9, asteroidSpeedMin: 80, asteroidSpeedMax: 140, refuelUses: 2 };
+    case 'jupiter':
+      return { asteroidCount: 10, asteroidSpeedMin: 90, asteroidSpeedMax: 150, refuelUses: 2 };
+    case 'saturn':
+      return { asteroidCount: 11, asteroidSpeedMin: 95, asteroidSpeedMax: 160, refuelUses: 2 };
+    case 'uranus':
+      return { asteroidCount: 12, asteroidSpeedMin: 100, asteroidSpeedMax: 170, refuelUses: 2 };
+    case 'neptune':
+      return { asteroidCount: 13, asteroidSpeedMin: 110, asteroidSpeedMax: 180, refuelUses: 2 };
+    case 'moon':
+    default:
+      // Original moon behavior: 5 asteroids, moderate speed, 1 refuel use
+      return { asteroidCount: 5, asteroidSpeedMin: 50, asteroidSpeedMax: 110, refuelUses: 1 };
+  }
+}
+
+function randomInRange(min: number, max: number): number {
+  return min + Math.random() * (max - min);
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+// Capsule layouts and facts per planet.
+// Positions are shared to keep difficulty consistent; facts and questionIds differ.
+const MOON_CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
   {
     id: 'tranquility-capsule',
     x: 260,
@@ -121,9 +176,393 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
   },
 ];
 
+const MERCURY_CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
+  {
+    id: 'mercury-day-night',
+    x: 260,
+    y: 180,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'mercury-slow-rotation',
+        text: 'Mercury rotates so slowly that a single day (sunrise to sunrise) lasts about 176 Earth days.',
+        questionId: 'mercury-day-length',
+      },
+    ],
+  },
+  {
+    id: 'mercury-atmosphere',
+    x: 520,
+    y: 360,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'mercury-thin-exosphere',
+        text: 'Mercury has an extremely thin exosphere instead of a thick atmosphere, so it cannot trap heat.',
+        questionId: 'mercury-atmosphere',
+      },
+    ],
+  },
+  {
+    id: 'mercury-temperature',
+    x: 900,
+    y: 220,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'mercury-temp-variation',
+        text: 'Because Mercury has almost no atmosphere, its surface temperature swings from scorching hot in the day to freezing at night.',
+        questionId: 'mercury-temp-variation',
+      },
+    ],
+  },
+];
+
+const EARTH_CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
+  {
+    id: 'earth-water',
+    x: 260,
+    y: 180,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'earth-liquid-water',
+        text: 'Earth is the only known planet with stable liquid water on its surface, covering about 71% of the planet.',
+        questionId: 'earth-liquid-water',
+      },
+    ],
+  },
+  {
+    id: 'earth-atmosphere',
+    x: 520,
+    y: 360,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'earth-atmosphere-protection',
+        text: 'Earth’s atmosphere shields life from harmful solar radiation and helps keep temperatures stable.',
+        questionId: 'earth-atmosphere-role',
+      },
+    ],
+  },
+  {
+    id: 'earth-moon-tides',
+    x: 900,
+    y: 220,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'earth-moon-tides-fact',
+        text: 'The gravitational pull of the Moon causes ocean tides on Earth, helping to shape coastal ecosystems.',
+        questionId: 'earth-moon-tides',
+      },
+    ],
+  },
+];
+
+const VENUS_CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
+  {
+    id: 'venus-greenhouse',
+    x: 260,
+    y: 180,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'venus-runaway-greenhouse',
+        text: 'Venus experiences a runaway greenhouse effect, making it even hotter than Mercury despite being farther from the Sun.',
+        questionId: 'venus-hottest-planet',
+      },
+    ],
+  },
+  {
+    id: 'venus-atmosphere',
+    x: 520,
+    y: 360,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'venus-thick-atmosphere',
+        text: 'Venus has a thick atmosphere made mostly of carbon dioxide with clouds of sulfuric acid.',
+        questionId: 'venus-atmosphere',
+      },
+    ],
+  },
+  {
+    id: 'venus-rotation',
+    x: 900,
+    y: 220,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'venus-retrograde-rotation',
+        text: 'Venus rotates in the opposite direction of most planets, so the Sun appears to rise in the west and set in the east.',
+        questionId: 'venus-rotation',
+      },
+    ],
+  },
+];
+
+const MARS_CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
+  {
+    id: 'mars-olympus-mons',
+    x: 260,
+    y: 180,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'mars-volcano',
+        text: 'Mars is home to Olympus Mons, the largest volcano in the solar system, standing about three times taller than Mount Everest.',
+        questionId: 'mars-olympus-mons',
+      },
+    ],
+  },
+  {
+    id: 'mars-water-ice',
+    x: 520,
+    y: 360,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'mars-polar-ice',
+        text: 'Mars has polar ice caps made of water ice and frozen carbon dioxide, suggesting it once had a wetter climate.',
+        questionId: 'mars-water-evidence',
+      },
+    ],
+  },
+  {
+    id: 'mars-thin-atmosphere',
+    x: 900,
+    y: 220,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'mars-atmosphere',
+        text: 'Mars has a thin atmosphere that cannot hold much heat, so surface temperatures can change dramatically between day and night.',
+        questionId: 'mars-atmosphere',
+      },
+    ],
+  },
+];
+
+const JUPITER_CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
+  {
+    id: 'jupiter-size',
+    x: 260,
+    y: 180,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'jupiter-largest-planet',
+        text: 'Jupiter is the largest planet in the solar system and is more than 11 times wider than Earth.',
+        questionId: 'jupiter-largest-planet',
+      },
+    ],
+  },
+  {
+    id: 'jupiter-great-red-spot',
+    x: 520,
+    y: 360,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'jupiter-red-spot',
+        text: 'Jupiter’s Great Red Spot is a giant storm that has been raging for at least 300 years.',
+        questionId: 'jupiter-great-red-spot',
+      },
+    ],
+  },
+  {
+    id: 'jupiter-many-moons',
+    x: 900,
+    y: 220,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'jupiter-moons',
+        text: 'Jupiter has dozens of moons, including the four large Galilean moons discovered by Galileo.',
+        questionId: 'jupiter-moons',
+      },
+    ],
+  },
+];
+
+const SATURN_CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
+  {
+    id: 'saturn-rings',
+    x: 260,
+    y: 180,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'saturn-ring-composition',
+        text: 'Saturn’s rings are made mostly of countless chunks of ice and rock, ranging from tiny grains to house-sized boulders.',
+        questionId: 'saturn-rings',
+      },
+    ],
+  },
+  {
+    id: 'saturn-density',
+    x: 520,
+    y: 360,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'saturn-density-fact',
+        text: 'Saturn is so light for its size that it would float in a giant bathtub of water, because its average density is less than water’s.',
+        questionId: 'saturn-density',
+      },
+    ],
+  },
+  {
+    id: 'saturn-moon-titan',
+    x: 900,
+    y: 220,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'saturn-titan',
+        text: 'Saturn’s moon Titan has a thick atmosphere and lakes of liquid methane and ethane on its surface.',
+        questionId: 'saturn-titan',
+      },
+    ],
+  },
+];
+
+const URANUS_CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
+  {
+    id: 'uranus-tilt',
+    x: 260,
+    y: 180,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'uranus-axis-tilt',
+        text: 'Uranus rotates on its side with an axial tilt of about 98 degrees, so it essentially rolls around the Sun.',
+        questionId: 'uranus-tilt',
+      },
+    ],
+  },
+  {
+    id: 'uranus-ice-giant',
+    x: 520,
+    y: 360,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'uranus-composition',
+        text: 'Uranus is an ice giant, with a composition rich in icy materials like water, ammonia, and methane.',
+        questionId: 'uranus-ice-giant',
+      },
+    ],
+  },
+  {
+    id: 'uranus-cold',
+    x: 900,
+    y: 220,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'uranus-temperature',
+        text: 'Despite not being the farthest planet, Uranus is one of the coldest planets due to the way it releases little internal heat.',
+        questionId: 'uranus-temperature',
+      },
+    ],
+  },
+];
+
+const NEPTUNE_CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
+  {
+    id: 'neptune-winds',
+    x: 260,
+    y: 180,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'neptune-wind-speed',
+        text: 'Neptune has the fastest winds in the solar system, with speeds that can exceed 2,000 kilometers per hour.',
+        questionId: 'neptune-winds',
+      },
+    ],
+  },
+  {
+    id: 'neptune-dark-spot',
+    x: 520,
+    y: 360,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'neptune-storms',
+        text: 'Like Jupiter’s Great Red Spot, Neptune has dark storm systems that appear and disappear over time.',
+        questionId: 'neptune-storms',
+      },
+    ],
+  },
+  {
+    id: 'neptune-distance',
+    x: 900,
+    y: 220,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
+    facts: [
+      {
+        id: 'neptune-farthest',
+        text: 'Neptune is the farthest known planet from the Sun, taking about 165 Earth years to complete one orbit.',
+        questionId: 'neptune-orbit',
+      },
+    ],
+  },
+];
+
+function getCapsuleDefinitionsForPlanet(planetId: PlanetId): CapsuleDefinition[] {
+  switch (planetId) {
+    case 'mercury':
+      return MERCURY_CAPSULE_DEFINITIONS;
+    case 'earth':
+      return EARTH_CAPSULE_DEFINITIONS;
+    case 'venus':
+      return VENUS_CAPSULE_DEFINITIONS;
+    case 'mars':
+      return MARS_CAPSULE_DEFINITIONS;
+    case 'jupiter':
+      return JUPITER_CAPSULE_DEFINITIONS;
+    case 'saturn':
+      return SATURN_CAPSULE_DEFINITIONS;
+    case 'uranus':
+      return URANUS_CAPSULE_DEFINITIONS;
+    case 'neptune':
+      return NEPTUNE_CAPSULE_DEFINITIONS;
+    case 'moon':
+    default:
+      return MOON_CAPSULE_DEFINITIONS;
+  }
+}
+
 const QUIZZES = quizDataJson as Record<string, QuizData>;
 
-export class MoonExplorationScene implements Scene {
+export class PlanetExplorationScene implements Scene {
   private readonly sceneManager: SceneManager;
   private readonly stage: RenderStage;
   private readonly world: World;
@@ -145,8 +584,7 @@ export class MoonExplorationScene implements Scene {
   private readonly planetSelectionUI: PlanetSelectionUI;
   private tutorialShown = false;
   // Which planet this exploration scene represents.
-  // Currently supports 'moon', 'mercury', and 'earth'.
-  private readonly planetId: 'moon' | 'mercury' | 'earth';
+  private readonly planetId: PlanetId;
 
   private shipId: number | null = null;
   private refuelStationId: number | null = null;
@@ -165,7 +603,7 @@ export class MoonExplorationScene implements Scene {
   private intelPanel: HTMLDivElement | null = null;
   private intelCountEl: HTMLParagraphElement | null = null;
   private intelFactsListEl: HTMLUListElement | null = null;
-  private refuelStationUsed = false;
+  private refuelUsesRemaining: number;
 
   constructor(
     sceneManager: SceneManager,
@@ -174,7 +612,7 @@ export class MoonExplorationScene implements Scene {
     eventBus: EventBus,
     saveRepository: SaveRepository,
     gameOverUI: GameOverUI,
-    planetId: 'moon' | 'mercury' | 'earth' = 'moon'
+    planetId: PlanetId = 'moon'
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
@@ -183,6 +621,7 @@ export class MoonExplorationScene implements Scene {
     this.saveRepository = saveRepository;
     this.gameOverUI = gameOverUI;
     this.planetId = planetId;
+    this.refuelUsesRemaining = getPlanetConfig(planetId).refuelUses;
 
     this.keyboard = new KeyboardClass();
     this.hud = new HUD();
@@ -322,11 +761,33 @@ export class MoonExplorationScene implements Scene {
   }
 
   private createRefuelStation(): void {
+    if (this.refuelUsesRemaining <= 0) {
+      return;
+    }
+
     this.refuelStationId = this.world.createEntity();
     const stationWidth = 140 * MOON_SCALE;
     const stationHeight = 120 * MOON_SCALE;
-    const stationX = this.stage.getWidth() / 2 - stationWidth / 2;
-    const stationY = this.stage.getHeight() / 2 - stationHeight / 2;
+    let stationX = this.stage.getWidth() / 2 - stationWidth / 2;
+    let stationY = this.stage.getHeight() / 2 - stationHeight / 2;
+
+    // For non-moon planets, randomize refuel station location for more variety
+    if (this.planetId !== 'moon') {
+      const stageWidth = this.stage.getWidth();
+      const stageHeight = this.stage.getHeight();
+      const marginX = 160;
+      const marginTop = 180;
+      const marginBottom = 140;
+
+      stationX = randomInRange(
+        marginX,
+        stageWidth - marginX - stationWidth
+      );
+      stationY = randomInRange(
+        marginTop,
+        stageHeight - marginBottom - stationHeight
+      );
+    }
 
     this.world.addComponent(
       this.refuelStationId,
@@ -417,6 +878,18 @@ export class MoonExplorationScene implements Scene {
         ? '../../assets/mecury-sprite.png'
         : this.planetId === 'earth'
         ? '../../assets/earth-sprite.png'
+        : this.planetId === 'venus'
+        ? '../../assets/venus.png'
+        : this.planetId === 'mars'
+        ? '../../assets/mars.png'
+        : this.planetId === 'jupiter'
+        ? '../../assets/jupiter.png'
+        : this.planetId === 'saturn'
+        ? '../../assets/saturn.png'
+        : this.planetId === 'uranus'
+        ? '../../assets/uranus.png'
+        : this.planetId === 'neptune'
+        ? '../../assets/neptune.png'
         : '../../assets/moon-icon.png';
     image.src = new URL(assetPath, import.meta.url).href;
     image.onload = () => {
@@ -522,34 +995,45 @@ export class MoonExplorationScene implements Scene {
   }
 
   private createAsteroids(): void {
-    const asteroidConfigs = [
-      { id: 'asteroid-1', x: 320, y: 280, width: 90 * MOON_SCALE, height: 90 * MOON_SCALE },
-      { id: 'asteroid-2', x: 540, y: 160, width: 80 * MOON_SCALE, height: 80 * MOON_SCALE },
-      { id: 'asteroid-3', x: 760, y: 420, width: 70 * MOON_SCALE, height: 70 * MOON_SCALE },
-      { id: 'asteroid-4', x: 980, y: 260, width: 85 * MOON_SCALE, height: 85 * MOON_SCALE },
-      { id: 'asteroid-5', x: 640, y: 520, width: 75 * MOON_SCALE, height: 75 * MOON_SCALE },
-    ];
+    const config = getPlanetConfig(this.planetId);
+    const stageWidth = this.stage.getWidth();
+    const stageHeight = this.stage.getHeight();
 
-    asteroidConfigs.forEach((config) => {
+    // Spawn region with margins so we don't overlap HUD/intel panel too much
+    const marginX = 120;
+    const marginTop = 140;
+    const marginBottom = 120;
+
+    for (let i = 0; i < config.asteroidCount; i++) {
+      const id = `asteroid-${i + 1}`;
+      const width = (80 + Math.random() * 20) * MOON_SCALE;
+      const height = width;
+
+      const x = randomInRange(marginX, stageWidth - marginX);
+      const y = randomInRange(marginTop, stageHeight - marginBottom);
+
       const entityId = this.world.createEntity();
-      const velocityMagnitude = 50 + Math.random() * 60;
+      const velocityMagnitude = randomInRange(
+        config.asteroidSpeedMin,
+        config.asteroidSpeedMax
+      );
       const direction = Math.random() * Math.PI * 2;
       const vx = Math.cos(direction) * velocityMagnitude;
       const vy = Math.sin(direction) * velocityMagnitude;
 
-      this.world.addComponent(entityId, createPosition(config.x, config.y));
+      this.world.addComponent(entityId, createPosition(x, y));
       this.world.addComponent(entityId, createVelocity(vx, vy));
       this.world.addComponent(entityId, createSprite('asteroid'));
 
-      this.asteroidEntities.set(config.id, entityId);
+      this.asteroidEntities.set(id, entityId);
 
-      const hitboxWidth = config.width * CONFIG.ASTEROID_HITBOX_SHRINK;
-      const hitboxHeight = config.height * CONFIG.ASTEROID_HITBOX_SHRINK;
-      const offsetX = (config.width - hitboxWidth) / 2;
-      const offsetY = (config.height - hitboxHeight) / 2;
+      const hitboxWidth = width * CONFIG.ASTEROID_HITBOX_SHRINK;
+      const hitboxHeight = height * CONFIG.ASTEROID_HITBOX_SHRINK;
+      const offsetX = (width - hitboxWidth) / 2;
+      const offsetY = (height - hitboxHeight) / 2;
 
       this.obstaclesSystem.addObstacle({
-        id: config.id,
+        id,
         entityId,
         width: hitboxWidth,
         height: hitboxHeight,
@@ -558,8 +1042,8 @@ export class MoonExplorationScene implements Scene {
         offsetY,
       });
 
-      this.createAsteroidNode(config.id, config.width, config.height);
-    });
+      this.createAsteroidNode(id, width, height);
+    }
   }
 
   private createAsteroidNode(
@@ -611,11 +1095,34 @@ export class MoonExplorationScene implements Scene {
   }
 
   private createDataCapsules(): void {
-    CAPSULE_DEFINITIONS.forEach((definition) => {
+    const definitions = getCapsuleDefinitionsForPlanet(this.planetId);
+    const stageWidth = this.stage.getWidth();
+    const stageHeight = this.stage.getHeight();
+    const marginX = 140;
+    const marginTop = 160;
+    const marginBottom = 140;
+
+    definitions.forEach((definition) => {
+      // For the Moon, keep original layout. For all other planets,
+      // randomize capsule positions strongly within safe bounds.
+      let capsuleX = definition.x;
+      let capsuleY = definition.y;
+
+      if (this.planetId !== 'moon') {
+        capsuleX = randomInRange(
+          marginX,
+          stageWidth - marginX - definition.width
+        );
+        capsuleY = randomInRange(
+          marginTop,
+          stageHeight - marginBottom - definition.height
+        );
+      }
+
       const entityId = this.world.createEntity();
       this.world.addComponent(
         entityId,
-        createPosition(definition.x, definition.y)
+        createPosition(capsuleX, capsuleY)
       );
       this.world.addComponent(
         entityId,
@@ -634,8 +1141,8 @@ export class MoonExplorationScene implements Scene {
 
       this.createCapsuleNode(
         definition.id,
-        definition.x,
-        definition.y,
+        capsuleX,
+        capsuleY,
         definition.width,
         definition.height
       );
@@ -895,27 +1402,44 @@ export class MoonExplorationScene implements Scene {
   private startMoonQuiz(): void {
     if (this.quizActive) return;
     this.quizConfirmation.hide();
-    const quiz = this.buildMoonQuiz();
+    const quiz = this.buildPlanetQuiz();
     this.quizActive = true;
     this.quizUI.showQuiz(quiz);
   }
 
-  private buildMoonQuiz(): QuizData {
-    const baseQuiz = QUIZZES['moon-quiz'];
+  private getQuizId(): string {
+    if (this.planetId === 'moon') {
+      return 'moon-quiz';
+    }
+    if (this.planetId === 'mercury') {
+      return 'mercury-quiz';
+    }
+    if (this.planetId === 'earth') {
+      return 'earth-quiz';
+    }
+    return `${this.planetId}-quiz`;
+  }
+
+  private buildPlanetQuiz(): QuizData {
+    const quizId = this.getQuizId();
+    const baseQuiz = QUIZZES[quizId];
+
+    // Fallback to moon quiz if something is misconfigured
+    const safeQuiz = baseQuiz ?? QUIZZES['moon-quiz'];
 
     // Always show ALL questions regardless of collected capsules.
-    // Collected facts help the player answer, but should not hide questions.
-    const questions = baseQuiz.questions.map((question) => ({ ...question }));
+    const questions = safeQuiz.questions.map((question) => ({ ...question }));
 
     return {
-      id: baseQuiz.id,
-      title: baseQuiz.title,
+      id: safeQuiz.id,
+      title: safeQuiz.title,
       questions,
     };
   }
 
   private handleQuizPassed = (payload: { quizId: string }): void => {
-    if (payload.quizId !== 'moon-quiz') {
+    const expectedQuizId = this.getQuizId();
+    if (payload.quizId !== expectedQuizId) {
       return;
     }
     this.quizActive = false;
@@ -970,23 +1494,30 @@ export class MoonExplorationScene implements Scene {
   }
 
   private handleFuelRefueled = (): void => {
-    // Remove refuel station after first use
-    if (!this.refuelStationUsed && this.refuelStationId) {
-      this.refuelStationUsed = true;
-      
-      // Remove trigger
-      this.triggersSystem.removeTrigger('moon-refuel');
-      
-      // Remove visual
-      if (this.refuelNode) {
-        this.refuelNode.destroy();
-        this.refuelNode = null;
-        this.stage.backgroundLayer.batchDraw();
-      }
-      
-      // Remove entity
-      this.world.removeEntity(this.refuelStationId);
-      this.refuelStationId = null;
+    if (!this.refuelStationId || this.refuelUsesRemaining <= 0) {
+      return;
+    }
+
+    // Consume one refuel use and remove the current station
+    this.refuelUsesRemaining -= 1;
+
+    // Remove trigger
+    this.triggersSystem.removeTrigger('moon-refuel');
+
+    // Remove visual
+    if (this.refuelNode) {
+      this.refuelNode.destroy();
+      this.refuelNode = null;
+      this.stage.backgroundLayer.batchDraw();
+    }
+
+    // Remove entity
+    this.world.removeEntity(this.refuelStationId);
+    this.refuelStationId = null;
+
+    // If we still have refuel uses left, spawn another station at a new location
+    if (this.refuelUsesRemaining > 0) {
+      this.createRefuelStation();
     }
   };
 
@@ -1016,8 +1547,8 @@ export class MoonExplorationScene implements Scene {
   }
 
   private restartMoonExploration(): void {
-    // Reset refuel station flag
-    this.refuelStationUsed = false;
+    // Reset refuel uses based on planet difficulty
+    this.refuelUsesRemaining = getPlanetConfig(this.planetId).refuelUses;
     this.gameOverUI.hide();
     
     // Explicitly hide and clean up any dialogue - do NOT show tutorial again
@@ -1091,10 +1622,8 @@ export class MoonExplorationScene implements Scene {
     this.asteroidNodes.forEach((node) => node.destroy());
     this.asteroidNodes.clear();
     
-    // Recreate refuel station if it was used
-    if (this.refuelStationUsed || !this.refuelStationId) {
-      this.createRefuelStation();
-    }
+    // Recreate refuel station(s)
+    this.createRefuelStation();
     
     // Recreate asteroids and capsules
     this.createAsteroids();
