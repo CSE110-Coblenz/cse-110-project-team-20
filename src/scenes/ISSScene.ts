@@ -66,6 +66,12 @@ export class ISSScene implements Scene {
   private gameOverUI: GameOverUI;
   private knockbackDisableUntil = 0; // Timestamp when knockback movement disable ends
   private passwordCracker: PasswordCracker;
+
+  // Event handlers so we can unsubscribe on dispose and avoid cross-scene side effects
+  private onQuizPassedHandler!: (payload: { quizId: string }) => void;
+  private onFuelEmptyHandler!: () => void;
+  private onMinigamePassedHandler!: (e: { minigameId: string }) => void;
+  private onFuelRefueledHandler!: () => void;
   constructor(
     sceneManager: SceneManager,
     stage: RenderStage,
@@ -172,8 +178,10 @@ export class ISSScene implements Scene {
     this.stage.backgroundLayer.batchDraw();
     this.stage.uiLayer.batchDraw();
 
-    // Listen for quiz completion
-    this.eventBus.on(EventTopics.QUIZ_PASSED, () => {
+    // --- Register event handlers (and store references so we can unsubscribe on dispose) ---
+
+    // Listen for quiz completion (ISS refuel quiz -> cutscene to Moon)
+    this.onQuizPassedHandler = () => {
       // Show success message after refueling and passing quiz
       this.dialogueManager.showSequence('refuel-success', () => {
         this.eventBus.emit(EventTopics.CUTSCENE_START, {
@@ -183,10 +191,11 @@ export class ISSScene implements Scene {
         });
         this.sceneManager.transitionTo('cutscene');
       });
-    });
+    };
+    this.eventBus.on(EventTopics.QUIZ_PASSED, this.onQuizPassedHandler);
 
-    // Listen for fuel empty
-    this.eventBus.on(EventTopics.FUEL_EMPTY, () => {
+    // Listen for fuel empty (ISS only)
+    this.onFuelEmptyHandler = () => {
       // Stop movement when fuel is empty
       if (this.shipId) {
         const velocity = this.world.getComponent<Velocity>(
@@ -200,22 +209,25 @@ export class ISSScene implements Scene {
       }
       // Show fuel empty dialog
       this.showFuelEmptyDialog();
-    });
+    };
+    this.eventBus.on(EventTopics.FUEL_EMPTY, this.onFuelEmptyHandler);
 
     // Listen for refuel - show quiz after successful refuel (the puzzle)
     // Note: This will be changed in Phase 5 to show quiz BEFORE refueling
-    this.eventBus.on('minigame:passed', (e) => {
+    this.onMinigamePassedHandler = (e: { minigameId: string }) => {
       if (e.minigameId === 'iss-refuel-puzzle') {
         this.showQuiz();
       }
-    });
+    };
+    this.eventBus.on('minigame:passed', this.onMinigamePassedHandler);
 
-    this.eventBus.on(EventTopics.FUEL_REFUELED, () => {
+    this.onFuelRefueledHandler = () => {
       if (!this.quizShown) {
         this.showPasswordGame();
         this.quizShown = true;
       }
-    });
+    };
+    this.eventBus.on(EventTopics.FUEL_REFUELED, this.onFuelRefueledHandler);
   }
 
   /**
@@ -623,6 +635,12 @@ export class ISSScene implements Scene {
   }
 
   dispose(): void {
+    // Unsubscribe from all event bus listeners registered in init()
+    this.eventBus.off(EventTopics.QUIZ_PASSED, this.onQuizPassedHandler);
+    this.eventBus.off(EventTopics.FUEL_EMPTY, this.onFuelEmptyHandler);
+    this.eventBus.off('minigame:passed', this.onMinigamePassedHandler as unknown as (...args: unknown[]) => void);
+    this.eventBus.off(EventTopics.FUEL_REFUELED, this.onFuelRefueledHandler);
+
     this.keyboard.dispose();
     this.quizUI.dispose();
     this.hud.dispose();
