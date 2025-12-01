@@ -74,12 +74,47 @@ function init(): void {
         world,
         eventBus,
         saveRepository,
-        gameOverUI
+        gameOverUI,
+        'moon'
+      )
+  );
+  sceneManager.register(
+    'mercury-exploration',
+    () =>
+      new MoonExplorationScene(
+        sceneManager,
+        stage,
+        world,
+        eventBus,
+        saveRepository,
+        gameOverUI,
+        'mercury'
+      )
+  );
+  sceneManager.register(
+    'earth-exploration',
+    () =>
+      new MoonExplorationScene(
+        sceneManager,
+        stage,
+        world,
+        eventBus,
+        saveRepository,
+        gameOverUI,
+        'earth'
       )
   );
 
   // Register placeholder scenes for planets (can be replaced with full implementations later)
   PLANETS.forEach((planet) => {
+    // Mercury and Earth have full exploration scenes, so skip placeholder for them
+    if (
+      planet.sceneId === 'mercury-exploration' ||
+      planet.sceneId === 'earth-exploration'
+    ) {
+      return;
+    }
+
     sceneManager.register(planet.sceneId, () => {
       return new PlaceholderPlanetScene(
         sceneManager,

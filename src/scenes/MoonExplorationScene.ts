@@ -144,6 +144,9 @@ export class MoonExplorationScene implements Scene {
   private readonly dialogueManager: DialogueManager;
   private readonly planetSelectionUI: PlanetSelectionUI;
   private tutorialShown = false;
+  // Which planet this exploration scene represents.
+  // Currently supports 'moon', 'mercury', and 'earth'.
+  private readonly planetId: 'moon' | 'mercury' | 'earth';
 
   private shipId: number | null = null;
   private refuelStationId: number | null = null;
@@ -170,7 +173,8 @@ export class MoonExplorationScene implements Scene {
     world: World,
     eventBus: EventBus,
     saveRepository: SaveRepository,
-    gameOverUI: GameOverUI
+    gameOverUI: GameOverUI,
+    planetId: 'moon' | 'mercury' | 'earth' = 'moon'
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
@@ -178,6 +182,7 @@ export class MoonExplorationScene implements Scene {
     this.eventBus = eventBus;
     this.saveRepository = saveRepository;
     this.gameOverUI = gameOverUI;
+    this.planetId = planetId;
 
     this.keyboard = new KeyboardClass();
     this.hud = new HUD();
@@ -236,8 +241,8 @@ export class MoonExplorationScene implements Scene {
     this.eventBus.on(EventTopics.FUEL_EMPTY, this.handleFuelEmpty);
     this.eventBus.on(EventTopics.FUEL_REFUELED, this.handleFuelRefueled);
 
-    // Show tutorial on first load
-    if (!this.tutorialShown) {
+    // Show tutorial on first load, but ONLY for the Moon level.
+    if (this.planetId === 'moon' && !this.tutorialShown) {
       this.showTutorial();
       this.tutorialShown = true;
     }
@@ -406,7 +411,14 @@ export class MoonExplorationScene implements Scene {
     height: number
   ): void {
     const image = new Image();
-    image.src = new URL('../../assets/moon-icon.png', import.meta.url).href;
+    // Choose destination sprite based on planet
+    const assetPath =
+      this.planetId === 'mercury'
+        ? '../../assets/mecury-sprite.png'
+        : this.planetId === 'earth'
+        ? '../../assets/earth-sprite.png'
+        : '../../assets/moon-icon.png';
+    image.src = new URL(assetPath, import.meta.url).href;
     image.onload = () => {
       this.moonDestinationNode?.destroy();
       this.moonDestinationNode = new Konva.Image({
@@ -910,38 +922,49 @@ export class MoonExplorationScene implements Scene {
     this.quizCompleted = true;
     this.saveRepository.setQuizResult('moon-quiz', true);
     this.saveRepository.setExplorationUnlocked(true);
-    // Mark moon as visited
-    this.saveRepository.addVisitedPlanet('moon');
-    // Show dialogue then planet selection
-    this.dialogueManager.showSequence('moon-quiz-complete', () => {
-      this.showPlanetSelection();
-    });
-    // Safety net: if for some reason the dialogue completion callback
-    // is never triggered (e.g. player doesn't click), automatically
-    // show the planet selection after a short delay so they don't get
-    // stuck flying around the Moon again.
-    window.setTimeout(() => {
-      if (!this.planetSelectionUI.isShowing()) {
+    // Mark this planet as visited
+    this.saveRepository.addVisitedPlanet(this.planetId);
+
+    if (this.planetId === 'moon') {
+      // For the Moon, show Neil's dialogue, then planet selection
+      this.dialogueManager.showSequence('moon-quiz-complete', () => {
         this.showPlanetSelection();
-      }
-    }, 6000);
+      });
+      // Safety net: if for some reason the dialogue completion callback
+      // is never triggered (e.g. player doesn't click), automatically
+      // show the planet selection after a short delay so they don't get
+      // stuck flying around the Moon again.
+      window.setTimeout(() => {
+        if (!this.planetSelectionUI.isShowing()) {
+          this.showPlanetSelection();
+        }
+      }, 6000);
+    } else {
+      // For Mercury and Earth, skip dialogue and go straight to planet selection
+      this.showPlanetSelection();
+    }
   };
 
   private showPlanetSelection(): void {
     const visitedPlanets = new Set(this.saveRepository.getVisitedPlanets());
-    // Add moon to visited planets if not already there
-    visitedPlanets.add('moon');
+    // Add current planet to visited planets if not already there
+    visitedPlanets.add(this.planetId);
     
     this.planetSelectionUI.show({
       visitedPlanets,
       onSelect: (planet: PlanetInfo) => {
         // Mark planet as visited
         this.saveRepository.addVisitedPlanet(planet.id);
-        // Transition to planet scene
-        // If the scene doesn't exist, SceneManager will silently fail
-        // We could add error handling here if needed
+        // Hide planet selection UI before transitioning
         this.planetSelectionUI.hide();
-        this.sceneManager.transitionTo(planet.sceneId);
+        // Emit cutscene event with source (current planet) and destination planet
+        this.eventBus.emit(EventTopics.CUTSCENE_START, {
+          cutsceneId: `${this.planetId}-to-${planet.id}`,
+          sourcePlanet: this.planetId === 'moon' ? 'Moon' : this.planetId.charAt(0).toUpperCase() + this.planetId.slice(1),
+          destinationPlanet: planet.name,
+        });
+        // Transition to cutscene, which will then transition to the planet scene
+        this.sceneManager.transitionTo('cutscene');
       },
     });
   }
@@ -1056,6 +1079,9 @@ export class MoonExplorationScene implements Scene {
     
     // Reset data capsules
     this.dataCapsulesSystem.clear();
+    // Recreate the Lunar Intel HUD so it always shows after a restart
+    this.destroyIntelPanel();
+    this.createIntelPanel();
     
     // Clear obstacles and recreate asteroids
     for (const entityId of this.asteroidEntities.values()) {
