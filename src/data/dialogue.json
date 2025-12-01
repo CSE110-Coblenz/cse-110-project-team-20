@@ -41,12 +41,33 @@
       "text": "Before you can refuel, you'll need to answer some questions about the ISS. Don't worry - you can try as many times as you need!"
     }
   ],
+  
+  "password-hint": [
+    {
+      "id": "pwd-intro",
+      "character": "Neil",
+      "text": "Hold on! The pump is locked. We need to bypass the security protocols to refuel."
+    },
+    {
+      "id": "pwd-instruction",
+      "character": "Neil",
+      "text": "I'm patching you into the system. The password is hidden inside the text log."
+    },
+    {
+      "id": "pwd-tip",
+      "character": "Neil",
+      "text": "Here is a hint: Look for words written in ALL CAPS. Combine them together to form the password!"
+    }
+  ],
+
+  
   "refuel-success": [
     {
       "id": "quiz-success",
       "character": "Neil",
       "text": "Excellent work! You've successfully refueled. Now you're ready to continue your journey through space."
     }
+
   ]
 }
 
