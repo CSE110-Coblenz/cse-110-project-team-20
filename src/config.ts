@@ -6,8 +6,8 @@
  */
 export const CONFIG = {
   // Stage dimensions
-  STAGE_WIDTH: 2560, // Doubled from 1280 for moon exploration
-  STAGE_HEIGHT: 1440, // Doubled from 720 for moon exploration
+  STAGE_WIDTH: 1280,
+  STAGE_HEIGHT: 720,
 
   // Game loop timing
   FIXED_TIMESTEP: 16.67, // ms (target 60 FPS)

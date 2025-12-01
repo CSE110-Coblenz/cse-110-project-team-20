@@ -60,8 +60,8 @@ interface CapsuleDefinition {
 const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
   {
     id: 'tranquility-capsule',
-    x: 520, // Doubled from 260
-    y: 360, // Doubled from 180
+    x: 260,
+    y: 180,
     width: 72,
     height: 72,
     facts: [
@@ -79,8 +79,8 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
   },
   {
     id: 'tycho-capsule',
-    x: 1040, // Doubled from 520
-    y: 720, // Doubled from 360
+    x: 520,
+    y: 360,
     width: 72,
     height: 72,
     facts: [
@@ -98,8 +98,8 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
   },
   {
     id: 'copernicus-capsule',
-    x: 1800, // Doubled from 900
-    y: 440, // Doubled from 220
+    x: 900,
+    y: 220,
     width: 72,
     height: 72,
     facts: [
@@ -157,11 +157,6 @@ export class MoonExplorationScene implements Scene {
   private intelPanel: HTMLDivElement | null = null;
   private intelCountEl: HTMLParagraphElement | null = null;
   private intelFactEl: HTMLParagraphElement | null = null;
-  private viewportOffsetX = 0;
-  private viewportOffsetY = 0;
-  private originalStageWidth: number | null = null;
-  private originalStageHeight: number | null = null;
-  private stageResized = false;
 
   constructor(
     sceneManager: SceneManager,
@@ -210,10 +205,7 @@ export class MoonExplorationScene implements Scene {
     this.gameOverUI.hide();
     // Clean up any lingering dialogue from previous scenes
     this.cleanupDialogue();
-    this.expandStageForExploration();
     this.resetStage();
-    // Update viewport offset after stage is expanded
-    this.updateViewportOffset();
     this.createIntelPanel();
 
     this.createShip();
@@ -248,110 +240,14 @@ export class MoonExplorationScene implements Scene {
     this.stage.entitiesLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
 
-    // Rebuild starfield for VIEWPORT size (not map size)
-    // Starfield should cover the visible area, not the entire map
+    // Rebuild starfield for the stage size
     this.starfieldLayer = new StarfieldLayer(
       this.stage.backgroundLayer,
-      CONFIG.STAGE_WIDTH, // Viewport width
-      CONFIG.STAGE_HEIGHT // Viewport height
+      this.stage.getWidth(),
+      this.stage.getHeight()
     );
   }
 
-  private expandStageForExploration(): void {
-    const desiredWidth = CONFIG.STAGE_WIDTH * 2;
-    const desiredHeight = CONFIG.STAGE_HEIGHT * 2;
-
-    if (!this.stageResized) {
-      this.originalStageWidth = this.stage.getWidth();
-      this.originalStageHeight = this.stage.getHeight();
-    }
-
-    if (
-      this.stage.getWidth() === desiredWidth &&
-      this.stage.getHeight() === desiredHeight
-    ) {
-      this.stageResized = true;
-      return;
-    }
-
-    this.setStageSize(desiredWidth, desiredHeight);
-    this.stageResized = true;
-    this.obstaclesSystem.setStageDimensions(desiredWidth, desiredHeight);
-  }
-
-  private restoreStageSize(): void {
-    if (
-      !this.stageResized ||
-      this.originalStageWidth === null ||
-      this.originalStageHeight === null
-    ) {
-      return;
-    }
-
-    this.setStageSize(this.originalStageWidth, this.originalStageHeight);
-    this.obstaclesSystem.setStageDimensions(
-      this.originalStageWidth,
-      this.originalStageHeight
-    );
-    this.stageResized = false;
-  }
-
-  private setStageSize(width: number, height: number): void {
-    // Stage size is the full game world (2560x1440)
-    this.stage.stage.size({ width, height });
-    const container = this.stage.stage.container();
-    
-    // If stage is larger than default, use viewport system
-    if (width > CONFIG.STAGE_WIDTH || height > CONFIG.STAGE_HEIGHT) {
-      // Container is viewport size (1280x720) - this is what flex centers
-      container.style.width = `${CONFIG.STAGE_WIDTH}px`;
-      container.style.height = `${CONFIG.STAGE_HEIGHT}px`;
-      container.style.transform = '';
-      container.style.transformOrigin = '';
-      container.style.position = '';
-      container.style.left = '';
-      container.style.top = '';
-      container.style.marginLeft = '';
-      container.style.marginTop = '';
-      
-      // Calculate viewport offset to center on map center
-      const mapCenterX = width / 2;
-      const mapCenterY = height / 2;
-      const viewportCenterX = CONFIG.STAGE_WIDTH / 2;
-      const viewportCenterY = CONFIG.STAGE_HEIGHT / 2;
-      
-      // Offset layers so map center aligns with viewport center
-      this.viewportOffsetX = viewportCenterX - mapCenterX;
-      this.viewportOffsetY = viewportCenterY - mapCenterY;
-      
-      // Apply offset to layers
-      this.updateViewportOffset();
-    } else {
-      // Normal size - no viewport offset needed
-      container.style.width = `${width}px`;
-      container.style.height = `${height}px`;
-      container.style.transform = '';
-      container.style.transformOrigin = '';
-      container.style.position = '';
-      container.style.left = '';
-      container.style.top = '';
-      container.style.marginLeft = '';
-      container.style.marginTop = '';
-      this.viewportOffsetX = 0;
-      this.viewportOffsetY = 0;
-      this.updateViewportOffset();
-    }
-  }
-  
-  private updateViewportOffset(): void {
-    // Apply viewport offset to background and entities layers
-    // This creates a "camera" effect showing the center of the map
-    this.stage.backgroundLayer.x(this.viewportOffsetX);
-    this.stage.backgroundLayer.y(this.viewportOffsetY);
-    this.stage.entitiesLayer.x(this.viewportOffsetX);
-    this.stage.entitiesLayer.y(this.viewportOffsetY);
-    // UI layer stays at 0,0 (always visible)
-  }
 
   /**
    * Clean up any lingering dialogue containers from previous scenes
@@ -434,7 +330,7 @@ export class MoonExplorationScene implements Scene {
   private createMoonDestination(): void {
     const destinationWidth = 180;
     const destinationHeight = 180;
-    const padding = 160; // Doubled from 80
+    const padding = 80;
     // Position moon icon to avoid overlap with fuel bar (200px wide + 20px margin = 220px from right)
     // Add extra margin to ensure visibility
     const fuelBarWidth = 220; // 200px bar + 20px margin
@@ -587,16 +483,15 @@ export class MoonExplorationScene implements Scene {
     this.stage.backgroundLayer.destroyChildren();
     this.stage.entitiesLayer.destroyChildren();
     this.stage.uiLayer.destroyChildren();
-    this.restoreStageSize();
   }
 
   private createAsteroids(): void {
     const asteroidConfigs = [
-      { id: 'asteroid-1', x: 640, y: 560, width: 90, height: 90 }, // Doubled positions
-      { id: 'asteroid-2', x: 1080, y: 320, width: 80, height: 80 },
-      { id: 'asteroid-3', x: 1520, y: 840, width: 70, height: 70 },
-      { id: 'asteroid-4', x: 1960, y: 520, width: 85, height: 85 },
-      { id: 'asteroid-5', x: 1280, y: 1040, width: 75, height: 75 },
+      { id: 'asteroid-1', x: 320, y: 280, width: 90, height: 90 },
+      { id: 'asteroid-2', x: 540, y: 160, width: 80, height: 80 },
+      { id: 'asteroid-3', x: 760, y: 420, width: 70, height: 70 },
+      { id: 'asteroid-4', x: 980, y: 260, width: 85, height: 85 },
+      { id: 'asteroid-5', x: 640, y: 520, width: 75, height: 75 },
     ];
 
     asteroidConfigs.forEach((config) => {
