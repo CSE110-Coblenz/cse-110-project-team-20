@@ -589,8 +589,9 @@ export class PlanetExplorationScene implements Scene {
   private shipId: number | null = null;
   private refuelStationId: number | null = null;
   private refuelNode: Konva.Image | null = null;
-  private moonDestinationArea: DestinationArea | null = null;
-  private moonDestinationNode: Konva.Image | null = null;
+  private planetDestinationArea: DestinationArea | null = null;
+  private planetDestinationNode: Konva.Image | null = null;
+  private planetDestinationLabel: Konva.Text | null = null;
   private asteroidEntities = new Map<string, number>();
   private asteroidNodes = new Map<string, Konva.Circle | Konva.Image>();
   private capsuleEntities = new Map<string, number>();
@@ -665,7 +666,7 @@ export class PlanetExplorationScene implements Scene {
 
     this.createShip();
     this.createRefuelStation();
-    this.createMoonDestination();
+    this.createPlanetDestination();
     this.createAsteroids();
     this.createDataCapsules();
     this.eventBus.on(
@@ -810,9 +811,10 @@ export class PlanetExplorationScene implements Scene {
     this.loadRefuelVisual(stationX, stationY, stationWidth, stationHeight);
   }
 
-  private createMoonDestination(): void {
-    const destinationWidth = 180 * MOON_SCALE;
-    const destinationHeight = 180 * MOON_SCALE;
+  private createPlanetDestination(): void {
+    // Make planet target large and obvious, similar in size to the ISS sprite
+    const destinationWidth = 180;
+    const destinationHeight = 180;
     const padding = 80;
     // Position moon icon to avoid overlap with fuel bar (200px wide + 20px margin = 220px from right)
     // Add extra margin to ensure visibility
@@ -827,14 +829,14 @@ export class PlanetExplorationScene implements Scene {
     const hitboxOffsetX = (destinationWidth - hitboxWidth) / 2;
     const hitboxOffsetY = (destinationHeight - hitboxHeight) / 2;
     
-    this.moonDestinationArea = {
+    this.planetDestinationArea = {
       x: destinationX + hitboxOffsetX,
       y: destinationY + hitboxOffsetY,
       width: hitboxWidth,
       height: hitboxHeight,
     };
 
-    this.loadMoonDestinationVisual(
+    this.loadPlanetDestinationVisual(
       destinationX,
       destinationY,
       destinationWidth,
@@ -865,46 +867,93 @@ export class PlanetExplorationScene implements Scene {
     };
   }
 
-  private loadMoonDestinationVisual(
+  private loadPlanetDestinationVisual(
     x: number,
     y: number,
     width: number,
     height: number
   ): void {
     const image = new Image();
-    // Choose destination sprite based on planet
+    // Choose destination sprite based on planet.
+    // Assets are served from Vite publicDir ('../assets') at the web root,
+    // so we use absolute paths like the ISS scene does (e.g. '/iss-bg.png').
     const assetPath =
       this.planetId === 'mercury'
-        ? '../../assets/mecury-sprite.png'
+        ? '/mecury-sprite.png'
         : this.planetId === 'earth'
-        ? '../../assets/earth-sprite.png'
+        ? '/earth-sprite.png'
         : this.planetId === 'venus'
-        ? '../../assets/venus.png'
+        ? '/venus.png'
         : this.planetId === 'mars'
-        ? '../../assets/mars.png'
+        ? '/mars.png'
         : this.planetId === 'jupiter'
-        ? '../../assets/jupiter.png'
+        ? '/jupiter.png'
         : this.planetId === 'saturn'
-        ? '../../assets/saturn.png'
+        ? '/saturn.png'
         : this.planetId === 'uranus'
-        ? '../../assets/uranus.png'
+        ? '/uranus.png'
         : this.planetId === 'neptune'
-        ? '../../assets/neptune.png'
-        : '../../assets/moon-icon.png';
-    image.src = new URL(assetPath, import.meta.url).href;
+        ? '/neptune.png'
+        : '/moon-icon.png';
+    
+    // Add error handling
+    image.onerror = () => {
+      console.error(`Failed to load destination image: ${assetPath}`);
+      // Create a fallback rectangle so the destination is still visible
+      this.planetDestinationNode?.destroy();
+      this.planetDestinationLabel?.destroy();
+      this.planetDestinationNode = new Konva.Rect({
+        x,
+        y,
+        width,
+        height,
+        fill: '#8888ff',
+        stroke: '#ffffff',
+        strokeWidth: 2,
+      }) as unknown as Konva.Image;
+      this.stage.uiLayer.add(this.planetDestinationNode);
+      this.stage.uiLayer.batchDraw();
+    };
+    
     image.onload = () => {
-      this.moonDestinationNode?.destroy();
-      this.moonDestinationNode = new Konva.Image({
+      // Clean up old nodes
+      this.planetDestinationNode?.destroy();
+      this.planetDestinationLabel?.destroy();
+      
+      this.planetDestinationNode = new Konva.Image({
         x,
         y,
         width,
         height,
         image,
+        opacity: 1,
+        listening: false, // Don't capture mouse events
       });
       // Draw destination icon on UI layer so it's always on top and clearly visible
-      this.stage.uiLayer.add(this.moonDestinationNode);
+      this.stage.uiLayer.add(this.planetDestinationNode);
+
+      // Add a label under the planet, like the ISS label
+      const prettyPlanetName =
+        this.planetId === 'moon'
+          ? 'Moon'
+          : this.planetId.charAt(0).toUpperCase() + this.planetId.slice(1);
+      this.planetDestinationLabel = new Konva.Text({
+        text: prettyPlanetName,
+        x: x + width / 2,
+        y: y + height + 10,
+        fontSize: 20,
+        fontFamily: 'Arial',
+        fill: '#ffffff',
+        listening: false,
+      });
+      this.planetDestinationLabel.offsetX(this.planetDestinationLabel.width() / 2);
+      this.stage.uiLayer.add(this.planetDestinationLabel);
+
       this.stage.uiLayer.batchDraw();
     };
+    
+    // Use absolute path directly so it matches how ISS and other sprites load.
+    image.src = assetPath;
   }
 
   update(dt: number): void {
@@ -984,9 +1033,13 @@ export class PlanetExplorationScene implements Scene {
       this.refuelNode.destroy();
       this.refuelNode = null;
     }
-    if (this.moonDestinationNode) {
-      this.moonDestinationNode.destroy();
-      this.moonDestinationNode = null;
+    if (this.planetDestinationNode) {
+      this.planetDestinationNode.destroy();
+      this.planetDestinationNode = null;
+    }
+    if (this.planetDestinationLabel) {
+      this.planetDestinationLabel.destroy();
+      this.planetDestinationLabel = null;
     }
 
     if (this.shipId) {
@@ -1366,7 +1419,7 @@ export class PlanetExplorationScene implements Scene {
 
   private checkDestinationReach(): void {
     if (
-      !this.moonDestinationArea ||
+      !this.planetDestinationArea ||
       !this.shipId ||
       this.quizCompleted ||
       this.quizUI.isShowing() ||
@@ -1393,7 +1446,7 @@ export class PlanetExplorationScene implements Scene {
       width: CONFIG.SHIP_WIDTH * MOON_SCALE,
       height: CONFIG.SHIP_HEIGHT * MOON_SCALE,
     };
-    if (checkAABBCollision(shipBox, this.moonDestinationArea)) {
+    if (checkAABBCollision(shipBox, this.planetDestinationArea)) {
       this.destinationCooldownUntil = Date.now() + 1500;
       this.handleMoonDestinationReached();
     }

@@ -15,7 +15,7 @@ import { NameScene } from './scenes/NameScene.js';
 import { ISSScene } from './scenes/ISSScene.js';
 import { CutsceneScene } from './scenes/CutsceneScene.js';
 import { MoonScene } from './scenes/MoonScene.js';
-import { PlanetExplorationScene } from './scenes/MoonExplorationScene.js';
+import { PlanetExplorationScene } from './scenes/PlanetExplorationScene.js';
 import { PlaceholderPlanetScene } from './scenes/PlaceholderPlanetScene.js';
 import { GameOverUI } from './ui/gameOver.js';
 import { PLANETS } from './ui/planetSelection.js';
