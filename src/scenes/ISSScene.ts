@@ -184,12 +184,16 @@ export class ISSScene implements Scene {
     this.onQuizPassedHandler = () => {
       // Show success message after refueling and passing quiz
       this.dialogueManager.showSequence('refuel-success', () => {
-        this.eventBus.emit(EventTopics.CUTSCENE_START, {
-          cutsceneId: 'iss-to-moon',
-          sourcePlanet: 'ISS',
-          destinationPlanet: 'Moon',
-        });
+        // First transition to cutscene so it can subscribe to CUTSCENE_START
         this.sceneManager.transitionTo('cutscene');
+        // Then emit the event on the next tick so the cutscene sees it
+        setTimeout(() => {
+          this.eventBus.emit(EventTopics.CUTSCENE_START, {
+            cutsceneId: 'iss-to-moon',
+            sourcePlanet: 'ISS',
+            destinationPlanet: 'Moon',
+          });
+        }, 0);
       });
     };
     this.eventBus.on(EventTopics.QUIZ_PASSED, this.onQuizPassedHandler);

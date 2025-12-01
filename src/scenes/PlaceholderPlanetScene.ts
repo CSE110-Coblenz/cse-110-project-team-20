@@ -121,14 +121,16 @@ export class PlaceholderPlanetScene implements Scene {
         onSelect: (planet: PlanetInfo) => {
           this.saveRepository.addVisitedPlanet(planet.id);
           this.planetSelectionUI.hide();
-          // Emit cutscene event with source (current planet) and destination
-          this.eventBus.emit(EventTopics.CUTSCENE_START, {
-            cutsceneId: `${this.planetName.toLowerCase()}-to-${planet.id}`,
-            sourcePlanet: this.planetName,
-            destinationPlanet: planet.name,
-          });
-          // Transition to cutscene, which will then transition to the planet scene
+          // First transition to cutscene so it can subscribe to CUTSCENE_START
           this.sceneManager.transitionTo('cutscene');
+          // Then emit cutscene event with source (current planet) and destination
+          setTimeout(() => {
+            this.eventBus.emit(EventTopics.CUTSCENE_START, {
+              cutsceneId: `${this.planetName.toLowerCase()}-to-${planet.id}`,
+              sourcePlanet: this.planetName,
+              destinationPlanet: planet.name,
+            });
+          }, 0);
         },
       });
     };

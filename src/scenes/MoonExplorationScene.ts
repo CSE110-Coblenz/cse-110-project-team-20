@@ -901,18 +901,39 @@ export class PlanetExplorationScene implements Scene {
         height,
         image,
       });
-      this.stage.backgroundLayer.add(this.moonDestinationNode);
-      this.stage.backgroundLayer.batchDraw();
+      // Draw destination icon on UI layer so it's always on top and clearly visible
+      this.stage.uiLayer.add(this.moonDestinationNode);
+      this.stage.uiLayer.batchDraw();
     };
   }
 
   update(dt: number): void {
+    const quizShowing = this.quizUI.isShowing() || this.quizConfirmation.isShowing();
+    const dialogueShowing = this.dialogueManager.isShowing();
+
+    // When quiz or confirmation is on screen, pause gameplay (ship, asteroids, triggers).
+    if (quizShowing) {
+      // Stop the ship so it doesn't drift and drain fuel while the quiz is open
+      if (this.shipId) {
+        const velocity = this.world.getComponent<Velocity>(
+          this.shipId,
+          'velocity'
+        );
+        if (velocity) {
+          velocity.vx = 0;
+          velocity.vy = 0;
+        }
+      }
+      this.updateHud();
+      return;
+    }
+
     this.playerInputSystem.update(dt, this.world);
     this.triggersSystem.update(dt, this.world);
     this.dataCapsulesSystem.update(dt, this.world);
     
     // Don't check obstacle collisions when dialogue is showing
-    if (!this.dialogueManager.isShowing()) {
+    if (!dialogueShowing) {
       this.obstaclesSystem.update(dt, this.world);
     }
     
@@ -1207,7 +1228,11 @@ export class PlanetExplorationScene implements Scene {
     `;
 
     const title = document.createElement('h3');
-    title.textContent = 'Lunar Intel Capsule';
+    const prettyPlanetName =
+      this.planetId === 'moon'
+        ? 'Moon'
+        : this.planetId.charAt(0).toUpperCase() + this.planetId.slice(1);
+    title.textContent = `${prettyPlanetName} Facts`;
     title.style.cssText = `
       margin: 0 0 8px 0;
       font-size: 18px;
@@ -1235,7 +1260,7 @@ export class PlanetExplorationScene implements Scene {
     `;
     
     const placeholder = document.createElement('li');
-    placeholder.textContent = 'Collect a data capsule to download Neil\'s intel.';
+    placeholder.textContent = `Collect a data capsule to learn facts about ${prettyPlanetName}.`;
     placeholder.style.cssText = `
       margin: 0;
       padding: 8px 0;
@@ -1277,7 +1302,11 @@ export class PlanetExplorationScene implements Scene {
       if (collectedFacts.length === 0) {
         // Show placeholder if no facts collected
         const placeholder = document.createElement('li');
-        placeholder.textContent = 'Collect a data capsule to download Neil\'s intel.';
+        const prettyPlanetName =
+          this.planetId === 'moon'
+            ? 'Moon'
+            : this.planetId.charAt(0).toUpperCase() + this.planetId.slice(1);
+        placeholder.textContent = `Collect a data capsule to learn facts about ${prettyPlanetName}.`;
         placeholder.style.cssText = `
           margin: 0;
           padding: 8px 0;
@@ -1481,14 +1510,19 @@ export class PlanetExplorationScene implements Scene {
         this.saveRepository.addVisitedPlanet(planet.id);
         // Hide planet selection UI before transitioning
         this.planetSelectionUI.hide();
-        // Emit cutscene event with source (current planet) and destination planet
-        this.eventBus.emit(EventTopics.CUTSCENE_START, {
-          cutsceneId: `${this.planetId}-to-${planet.id}`,
-          sourcePlanet: this.planetId === 'moon' ? 'Moon' : this.planetId.charAt(0).toUpperCase() + this.planetId.slice(1),
-          destinationPlanet: planet.name,
-        });
-        // Transition to cutscene, which will then transition to the planet scene
+        // First transition to cutscene so it can subscribe to CUTSCENE_START
         this.sceneManager.transitionTo('cutscene');
+        // Then emit cutscene event with source (current planet) and destination planet
+        setTimeout(() => {
+          this.eventBus.emit(EventTopics.CUTSCENE_START, {
+            cutsceneId: `${this.planetId}-to-${planet.id}`,
+            sourcePlanet:
+              this.planetId === 'moon'
+                ? 'Moon'
+                : this.planetId.charAt(0).toUpperCase() + this.planetId.slice(1),
+            destinationPlanet: planet.name,
+          });
+        }, 0);
       },
     });
   }

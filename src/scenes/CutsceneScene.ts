@@ -119,17 +119,37 @@ export class CutsceneScene implements Scene {
     // Draw destination planet (right side)
     const destSize = this.destinationPlanet === 'Moon' ? 120 : 100;
     const destY = this.stage.getHeight() / 2 - (destSize / 2);
+    const destX = this.stage.getWidth() - 200;
+
     const destinationRect = new Konva.Rect({
-      x: this.stage.getWidth() - 200,
+      x: destX,
       y: destY,
       width: destSize,
       height: destSize,
-      fill: this.destinationPlanet === 'Moon' ? '#cccccc' : '#ffaa44',
+      fill: '#000000', // base background so PNG stands out
       stroke: '#999999',
       strokeWidth: 2,
       cornerRadius: this.destinationPlanet === 'Moon' ? destSize / 2 : 0,
     });
     this.stage.backgroundLayer.add(destinationRect);
+
+    // If we have a sprite for the destination planet, draw it centered on the rect.
+    // For now we special-case the Moon so your moon PNG appears in the cutscene.
+    if (this.destinationPlanet === 'Moon') {
+      const img = new Image();
+      img.src = new URL('../../assets/moon-icon.png', import.meta.url).href;
+      img.onload = () => {
+        const sprite = new Konva.Image({
+          x: destX,
+          y: destY,
+          width: destSize,
+          height: destSize,
+          image: img,
+        });
+        this.stage.backgroundLayer.add(sprite);
+        this.stage.backgroundLayer.batchDraw();
+      };
+    }
 
     const destLabel = new Konva.Text({
       text: this.destinationPlanet,
