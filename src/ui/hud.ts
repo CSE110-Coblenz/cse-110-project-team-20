@@ -59,6 +59,15 @@ export class HUD {
     this.fuelText.textContent = `Fuel: ${fuelTextCap.toFixed(1)}/${max}`;
   }
 
+  /**
+   * Reattach HUD to DOM if it was disposed
+   */
+  show(): void {
+    if (!this.container.parentNode) {
+      document.body.appendChild(this.container);
+    }
+  }
+
   dispose(): void {
     if (this.container.parentNode) {
       this.container.parentNode.removeChild(this.container);

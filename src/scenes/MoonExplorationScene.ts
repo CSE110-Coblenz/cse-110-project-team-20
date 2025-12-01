@@ -35,6 +35,7 @@ import { StarfieldLayer } from '../render/layers/starfield.js';
 import { QuizUI, type QuizData } from '../ui/quiz.js';
 import { QuizConfirmation } from '../ui/quizConfirmation.js';
 import { DialogueManager } from '../content/dialogue.js';
+import { PlanetSelectionUI, type PlanetInfo } from '../ui/planetSelection.js';
 import quizDataJson from '../data/quizzes.json' with { type: 'json' };
 import {
   checkAABBCollision,
@@ -70,12 +71,12 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
     facts: [
       {
         id: 'tranquility-apollo-landing',
-        text: 'Apollo 11\'s Eagle module touched down in the Sea of Tranquility on July 20, 1969.',
+        text: 'The Sea of Tranquility (Mare Tranquillitatis) was the landing site for Apollo 11, where Neil Armstrong and Buzz Aldrin became the first humans to walk on the Moon on July 20, 1969.',
         questionId: 'moon-landing-site',
       },
       {
-        id: 'tranquility-basaltic-sea',
-        text: 'The Sea of Tranquility is a basaltic plain; ancient lava flows filled the basin to create its dark hue.',
+        id: 'tranquility-landing-site',
+        text: 'Apollo 11\'s historic landing occurred in the Sea of Tranquility, chosen for its flat terrain and safe landing conditions.',
         questionId: 'moon-landing-site',
       },
     ],
@@ -88,13 +89,13 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
     height: 72 * MOON_SCALE,
     facts: [
       {
-        id: 'tycho-young-crater',
-        text: 'Tycho Crater is only ~108 million years old — incredibly young for a lunar feature.',
+        id: 'tycho-ray-system',
+        text: 'Tycho Crater stands out when viewing the Moon from Earth because its bright radial rays streak across the lunar surface, created by impact ejecta that was thrown outward during the crater\'s formation.',
         questionId: 'tycho-radial-rays',
       },
       {
-        id: 'tycho-ray-system',
-        text: 'Impact ejecta from Tycho forms brilliant rays that streak across the near side and are visible even with binoculars.',
+        id: 'tycho-visible-rays',
+        text: 'The bright rays extending from Tycho Crater are so prominent and visible from Earth that they make Tycho one of the most recognizable features on the Moon.',
         questionId: 'tycho-radial-rays',
       },
     ],
@@ -107,13 +108,13 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
     height: 72 * MOON_SCALE,
     facts: [
       {
-        id: 'copernicus-terra',
-        text: 'Copernicus Crater spans roughly 93 km and boasts terraced walls carved by landslides after impact.',
+        id: 'copernicus-complex-structure',
+        text: 'Copernicus Crater is a textbook example of a complex crater because it features terraced walls and towering central peaks that rise approximately 800 meters high.',
         questionId: 'copernicus-structure',
       },
       {
-        id: 'copernicus-peaks',
-        text: 'Central peaks in Copernicus soar ~800 meters high, showcasing what makes a "complex crater."',
+        id: 'copernicus-terraced-peaks',
+        text: 'What makes Copernicus a complex crater is its distinctive terraced inner walls and prominent central peaks, both formed during the massive impact event that created the crater.',
         questionId: 'copernicus-structure',
       },
     ],
@@ -141,6 +142,7 @@ export class MoonExplorationScene implements Scene {
   private readonly quizUI: QuizUI;
   private readonly quizConfirmation: QuizConfirmation;
   private readonly dialogueManager: DialogueManager;
+  private readonly planetSelectionUI: PlanetSelectionUI;
   private tutorialShown = false;
 
   private shipId: number | null = null;
@@ -159,7 +161,7 @@ export class MoonExplorationScene implements Scene {
   private destinationCooldownUntil = 0;
   private intelPanel: HTMLDivElement | null = null;
   private intelCountEl: HTMLParagraphElement | null = null;
-  private intelFactEl: HTMLParagraphElement | null = null;
+  private intelFactsListEl: HTMLUListElement | null = null;
   private refuelStationUsed = false;
 
   constructor(
@@ -203,12 +205,20 @@ export class MoonExplorationScene implements Scene {
     this.quizUI = new QuizUI(this.eventBus);
     this.quizConfirmation = new QuizConfirmation();
     this.dialogueManager = new DialogueManager();
+    this.planetSelectionUI = new PlanetSelectionUI(sceneManager);
   }
 
   init(): void {
     this.gameOverUI.hide();
     // Clean up any lingering dialogue from previous scenes
     this.cleanupDialogue();
+    
+    // Clean up any lingering PasswordCracker/ISS UI elements from previous scenes
+    this.cleanupLingeringUI();
+    
+    // Ensure HUD is visible (reattach if it was disposed)
+    this.hud.show();
+    
     this.resetStage();
     this.createIntelPanel();
 
@@ -259,25 +269,69 @@ export class MoonExplorationScene implements Scene {
    * Dialogue should only appear in tutorial scenes, not in moon exploration
    */
   private cleanupDialogue(): void {
+    // Hide dialogue manager first
+    this.dialogueManager.hide();
+    
     // Find dialogue containers by their distinctive styling (z-index 2000, bottom position)
     const allDivs = document.querySelectorAll('div');
     for (const div of allDivs) {
       const style = window.getComputedStyle(div);
       // Dialogue containers have z-index 2000 and are positioned at bottom
+      // Also check for Neil's name in text content
       if (
-        style.zIndex === '2000' &&
-        style.position === 'fixed' &&
-        (style.bottom !== 'auto' || div.textContent?.includes('Neil'))
+        style.zIndex === '2000' ||
+        (style.position === 'fixed' && style.bottom !== 'auto') ||
+        div.textContent?.includes('Neil') ||
+        div.textContent?.includes('DePaws Tyson')
       ) {
         div.remove();
       }
     }
   }
 
+  /**
+   * Clean up any lingering UI elements from ISS scene (PasswordCracker, etc.)
+   * that might persist when transitioning to moon exploration
+   */
+  private cleanupLingeringUI(): void {
+    // Find and remove PasswordCracker dialogs (they contain "ISS Refuel System" or "Enter decoded password")
+    const allDivs = document.querySelectorAll('div');
+    for (const div of allDivs) {
+      const text = div.textContent || '';
+      const style = window.getComputedStyle(div);
+      
+      // Check for PasswordCracker UI elements
+      if (
+        text.includes('ISS Refuel System') ||
+        text.includes('Enter decoded password') ||
+        text.includes('ENTER DECODED PASSWORD') ||
+        (style.position === 'fixed' && 
+         (text.includes('Access Granted') || text.includes('Access Denied')))
+      ) {
+        div.remove();
+      }
+    }
+    
+    // Also check for input elements with password-related placeholders
+    const inputs = document.querySelectorAll('input[type="text"]');
+    for (const input of inputs) {
+      const placeholder = input.getAttribute('placeholder') || '';
+      if (
+        placeholder.includes('decoded password') ||
+        placeholder.includes('DECODED PASSWORD')
+      ) {
+        const container = input.closest('div');
+        if (container) {
+          container.remove();
+        }
+      }
+    }
+  }
+
   private createShip(): void {
     this.shipId = this.world.createEntity();
-    const startX = 160; // Doubled from 80
-    const startY = this.stage.getHeight() - 400; // Doubled from 200
+    const startX = 80;
+    const startY = this.stage.getHeight() - 200;
 
     this.world.addComponent(this.shipId, createPosition(startX, startY));
     this.world.addComponent(this.shipId, createVelocity(0, 0));
@@ -413,7 +467,12 @@ export class MoonExplorationScene implements Scene {
     this.playerInputSystem.update(dt, this.world);
     this.triggersSystem.update(dt, this.world);
     this.dataCapsulesSystem.update(dt, this.world);
-    this.obstaclesSystem.update(dt, this.world);
+    
+    // Don't check obstacle collisions when dialogue is showing
+    if (!this.dialogueManager.isShowing()) {
+      this.obstaclesSystem.update(dt, this.world);
+    }
+    
     this.updateAsteroidNodes();
     this.starfieldLayer.update(dt);
     this.checkDestinationReach();
@@ -455,6 +514,7 @@ export class MoonExplorationScene implements Scene {
     this.destroyIntelPanel();
     this.quizUI.dispose();
     this.quizConfirmation.dispose();
+    this.planetSelectionUI.dispose();
 
     if (this.refuelNode) {
       this.refuelNode.destroy();
@@ -687,23 +747,36 @@ export class MoonExplorationScene implements Scene {
       color: #bfe1ff;
     `;
 
-    const factEl = document.createElement('p');
-    factEl.style.cssText = `
+    const factsListEl = document.createElement('ul');
+    factsListEl.style.cssText = `
       margin: 0;
+      padding: 0;
+      list-style: none;
+      max-height: 400px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    `;
+    
+    const placeholder = document.createElement('li');
+    placeholder.textContent = 'Collect a data capsule to download Neil\'s intel.';
+    placeholder.style.cssText = `
+      margin: 0;
+      padding: 8px 0;
       font-size: 14px;
       line-height: 1.5;
-      color: #e6f1ff;
+      color: #a0c4e0;
+      font-style: italic;
     `;
-    factEl.textContent = 'Collect a data capsule to download Neil’s intel.';
+    factsListEl.appendChild(placeholder);
 
     container.appendChild(title);
     container.appendChild(countEl);
-    container.appendChild(factEl);
+    container.appendChild(factsListEl);
 
     document.body.appendChild(container);
     this.intelPanel = container;
     this.intelCountEl = countEl;
-    this.intelFactEl = factEl;
+    this.intelFactsListEl = factsListEl;
 
     this.updateIntelProgress(
       this.dataCapsulesSystem.getCollectedCount(),
@@ -716,13 +789,55 @@ export class MoonExplorationScene implements Scene {
       const totalDisplay = total === 0 ? '?' : total.toString();
       this.intelCountEl.textContent = `Intel Collected: ${collected}/${totalDisplay}`;
     }
+    
+    // Update the facts list
+    if (this.intelFactsListEl) {
+      const collectedFacts = this.dataCapsulesSystem.getCollectedFacts();
+      
+      // Clear existing list items
+      this.intelFactsListEl.innerHTML = '';
+      
+      if (collectedFacts.length === 0) {
+        // Show placeholder if no facts collected
+        const placeholder = document.createElement('li');
+        placeholder.textContent = 'Collect a data capsule to download Neil\'s intel.';
+        placeholder.style.cssText = `
+          margin: 0;
+          padding: 8px 0;
+          font-size: 14px;
+          line-height: 1.5;
+          color: #a0c4e0;
+          font-style: italic;
+        `;
+        this.intelFactsListEl.appendChild(placeholder);
+      } else {
+        // Show all collected facts as a numbered list
+        collectedFacts.forEach((fact, index) => {
+          const listItem = document.createElement('li');
+          listItem.style.cssText = `
+            margin: 0 0 12px 0;
+            padding: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #e6f1ff;
+            background: rgba(74, 158, 255, 0.15);
+            border-left: 3px solid #4a9eff;
+            border-radius: 4px;
+          `;
+          listItem.textContent = `${index + 1}. ${fact.text}`;
+          if (this.intelFactsListEl) {
+            this.intelFactsListEl.appendChild(listItem);
+          }
+        });
+      }
+    }
   }
 
   private destroyIntelPanel(): void {
     this.intelPanel?.remove();
     this.intelPanel = null;
     this.intelCountEl = null;
-    this.intelFactEl = null;
+    this.intelFactsListEl = null;
   }
 
   private handleCapsuleCollected = (payload: {
@@ -732,9 +847,6 @@ export class MoonExplorationScene implements Scene {
     totalCapsules: number;
   }): void => {
     this.updateIntelProgress(payload.collectedCount, payload.totalCapsules);
-    if (this.intelFactEl) {
-      this.intelFactEl.textContent = payload.fact.text;
-    }
   };
 
   private handleCapsulesComplete = (_payload: {
@@ -858,11 +970,41 @@ export class MoonExplorationScene implements Scene {
     this.quizCompleted = true;
     this.saveRepository.setQuizResult('moon-quiz', true);
     this.saveRepository.setExplorationUnlocked(true);
-    if (this.intelFactEl) {
-      this.intelFactEl.textContent =
-        'Stellar work, cadet! You decoded every piece of lunar intel.';
-    }
+    // Mark moon as visited
+    this.saveRepository.addVisitedPlanet('moon');
+    // Hide quiz UI before showing dialogue
+    this.quizUI.dispose();
+    this.quizConfirmation.hide();
+    // Show dialogue then planet selection
+    this.dialogueManager.showSequence('moon-quiz-complete', () => {
+      this.showPlanetSelection();
+    });
   };
+
+  private showPlanetSelection(): void {
+    const visitedPlanets = new Set(this.saveRepository.getVisitedPlanets());
+    // Add moon to visited planets if not already there
+    visitedPlanets.add('moon');
+    
+    // Ensure any lingering UI is hidden before showing planet selection
+    this.quizUI.dispose();
+    this.quizConfirmation.hide();
+    this.dialogueManager.hide();
+    
+    this.planetSelectionUI.show({
+      visitedPlanets,
+      onSelect: (planet: PlanetInfo) => {
+        // Mark planet as visited
+        this.saveRepository.addVisitedPlanet(planet.id);
+        // Hide planet selection UI before transitioning
+        this.planetSelectionUI.hide();
+        // Transition to planet scene
+        // SceneManager will handle the transition - if scene doesn't exist, it will fail silently
+        // but that's handled by SceneManager.transitionTo()
+        this.sceneManager.transitionTo(planet.sceneId);
+      },
+    });
+  }
 
   private handleFuelRefueled = (): void => {
     // Remove refuel station after first use
@@ -887,7 +1029,7 @@ export class MoonExplorationScene implements Scene {
 
   private handleFuelEmpty = (): void => {
     if (!this.shipId) return;
-    const velocity = this.world.getComponent(
+    const velocity = this.world.getComponent<Velocity>(
       this.shipId,
       'velocity'
     );
@@ -914,23 +1056,32 @@ export class MoonExplorationScene implements Scene {
     // Reset refuel station flag
     this.refuelStationUsed = false;
     this.gameOverUI.hide();
-    // Clean up any lingering dialogue
-    this.cleanupDialogue();
+    
+    // Explicitly hide and clean up any dialogue - do NOT show tutorial again
     this.dialogueManager.hide();
+    this.cleanupDialogue();
+    
+    // Ensure tutorial flag remains true so tutorial never shows again
+    this.tutorialShown = true;
 
-    // Reset ship position
-    if (this.shipId) {
+    // Reset or recreate ship
+    if (!this.shipId) {
+      // Ship was removed, recreate it
+      this.createShip();
+    } else {
+      // Reset ship position
       const position = this.world.getComponent<Position>(
         this.shipId,
         'position'
       );
       if (position) {
-        position.x = 160; // Doubled from 80
-        position.y = this.stage.getHeight() - 400; // Doubled from 200
+        position.x = 80;
+        position.y = this.stage.getHeight() - 200;
+        position.angle = 0;
       }
 
       // Reset velocity
-      const velocity = this.world.getComponent(
+      const velocity = this.world.getComponent<Velocity>(
         this.shipId,
         'velocity'
       );
@@ -939,15 +1090,17 @@ export class MoonExplorationScene implements Scene {
         velocity.vy = 0;
       }
 
-      // Reset fuel
+      // Reset fuel - ensure it's properly reset to 50%
       const fuel = this.world.getComponent<Fuel>(this.shipId, 'fuel');
       if (fuel) {
-        fuel.current = CONFIG.FUEL_INITIAL;
-      }
-
-      // Reset rotation
-      if (position) {
-        position.angle = 0;
+        fuel.current = CONFIG.FUEL_INITIAL; // 50%
+        fuel.max = CONFIG.FUEL_MAX;
+      } else {
+        // Re-add fuel component if missing
+        this.world.addComponent(
+          this.shipId,
+          createFuel(CONFIG.FUEL_MAX, CONFIG.FUEL_INITIAL)
+        );
       }
     }
 
@@ -958,6 +1111,9 @@ export class MoonExplorationScene implements Scene {
     this.quizUI.dispose();
     this.quizConfirmation.hide();
 
+    // Ensure tutorial doesn't show again on restart
+    // (tutorialShown flag should remain true)
+    
     // Reset data capsules
     this.dataCapsulesSystem.clear();
     
@@ -978,11 +1134,19 @@ export class MoonExplorationScene implements Scene {
     this.createAsteroids();
     this.createDataCapsules();
     
-    // Sync entities for rendering
+    // Sync entities for rendering - force full sync to update ship position
     this.entitiesLayer.syncEntities();
-
-    // Show tutorial again
-    this.showTutorial();
+    
+    // Force stage redraw to ensure all visual updates are rendered
+    this.stage.batchDraw();
+    
+    // Update HUD to show reset fuel
+    this.updateHud();
+    
+    // Ensure HUD is visible
+    this.hud.show();
+    
+    // Don't show tutorial again on restart - tutorialShown flag remains true
   }
 
   private showTutorial(): void {

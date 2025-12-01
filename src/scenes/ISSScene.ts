@@ -625,6 +625,12 @@ export class ISSScene implements Scene {
     this.quizUI.dispose();
     this.hud.dispose();
     this.dialogueManager.dispose();
+    // Hide and dispose password cracker to prevent it from appearing in other scenes
+    if (this.passwordCracker.isShowing()) {
+      this.passwordCracker.dispose();
+    } else {
+      this.passwordCracker.dispose();
+    }
     // Hide gameOverUI if showing (don't dispose - it's shared across scenes)
     if (this.gameOverUI.isShowing()) {
       this.gameOverUI.hide();

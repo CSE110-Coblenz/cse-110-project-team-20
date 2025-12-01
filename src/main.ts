@@ -16,7 +16,9 @@ import { ISSScene } from './scenes/ISSScene.js';
 import { CutsceneScene } from './scenes/CutsceneScene.js';
 import { MoonScene } from './scenes/MoonScene.js';
 import { MoonExplorationScene } from './scenes/MoonExplorationScene.js';
+import { PlaceholderPlanetScene } from './scenes/PlaceholderPlanetScene.js';
 import { GameOverUI } from './ui/gameOver.js';
+import { PLANETS } from './ui/planetSelection.js';
 
 function init(): void {
   // Get container
@@ -75,6 +77,19 @@ function init(): void {
         gameOverUI
       )
   );
+
+  // Register placeholder scenes for planets (can be replaced with full implementations later)
+  PLANETS.forEach((planet) => {
+    sceneManager.register(planet.sceneId, () => {
+      return new PlaceholderPlanetScene(
+        sceneManager,
+        stage,
+        gameOverUI,
+        saveRepository,
+        planet.name
+      );
+    });
+  });
 
   // Create and register systems
   const movementSystem = new MovementSystem();

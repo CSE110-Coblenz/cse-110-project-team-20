@@ -74,5 +74,22 @@
       "character": "Neil DePaws Tyson",
       "text": "There's a refuel station in the center of the map if you need more fuel. Be careful though - it can only be used once before it disappears, so use it wisely! Good luck, explorer!"
     }
+  ],
+  "moon-quiz-complete": [
+    {
+      "id": "moon-quiz-congratulations",
+      "character": "Neil DePaws Tyson",
+      "text": "Outstanding work, explorer! You've mastered the Moon and proven you can collect intel and pass the quiz."
+    },
+    {
+      "id": "solar-system-unlock",
+      "character": "Neil DePaws Tyson",
+      "text": "Now that you know how to do it, explore the solar system as you see fit. The further you travel, the more difficult it gets!"
+    },
+    {
+      "id": "planet-selection",
+      "character": "Neil DePaws Tyson",
+      "text": "Choose your next destination from Mercury to Neptune. You can revisit planets you've already explored, except for the ISS tutorial. Ready to continue your journey?"
+    }
   ]
 }

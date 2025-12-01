@@ -10,6 +10,7 @@ export interface SaveData {
   tutorialDone?: boolean;
   explorationUnlocked?: boolean;
   quizResults?: Record<string, boolean>;
+  visitedPlanets?: string[]; // Array of planet IDs that have been visited
 }
 
 const CURRENT_VERSION = 'mvp-1';
@@ -122,5 +123,22 @@ export class SaveRepository {
     const quizResults = current.quizResults || {};
     quizResults[quizId] = passed;
     this.merge({ quizResults });
+  }
+
+  getVisitedPlanets(): string[] {
+    return this.get().visitedPlanets || [];
+  }
+
+  addVisitedPlanet(planetId: string): void {
+    const current = this.get();
+    const visitedPlanets = current.visitedPlanets || [];
+    if (!visitedPlanets.includes(planetId)) {
+      visitedPlanets.push(planetId);
+      this.merge({ visitedPlanets });
+    }
+  }
+
+  hasVisitedPlanet(planetId: string): boolean {
+    return this.getVisitedPlanets().includes(planetId);
   }
 }
