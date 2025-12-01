@@ -178,6 +178,8 @@ export class ISSScene implements Scene {
       this.dialogueManager.showSequence('refuel-success', () => {
         this.eventBus.emit(EventTopics.CUTSCENE_START, {
           cutsceneId: 'iss-to-moon',
+          sourcePlanet: 'ISS',
+          destinationPlanet: 'Moon',
         });
         this.sceneManager.transitionTo('cutscene');
       });

@@ -11,6 +11,7 @@ export interface SaveData {
   explorationUnlocked?: boolean;
   quizResults?: Record<string, boolean>;
   visitedPlanets?: string[]; // Array of planet IDs that have been visited
+  moonExplorationTutorialShown?: boolean; // Whether moon exploration tutorial has been shown
 }
 
 const CURRENT_VERSION = 'mvp-1';
@@ -140,5 +141,17 @@ export class SaveRepository {
 
   hasVisitedPlanet(planetId: string): boolean {
     return this.getVisitedPlanets().includes(planetId);
+  }
+
+  getQuizResult(quizId: string): boolean | undefined {
+    return this.get().quizResults?.[quizId];
+  }
+
+  isMoonExplorationTutorialShown(): boolean {
+    return this.get().moonExplorationTutorialShown ?? false;
+  }
+
+  setMoonExplorationTutorialShown(shown: boolean): void {
+    this.merge({ moonExplorationTutorialShown: shown });
   }
 }

@@ -60,12 +60,16 @@ export class HUD {
   }
 
   /**
-   * Reattach HUD to DOM if it was disposed
+   * Reattach HUD to DOM if it was disposed and ensure it's visible
    */
   show(): void {
     if (!this.container.parentNode) {
       document.body.appendChild(this.container);
     }
+    // Ensure container is visible (in case it was hidden)
+    this.container.style.display = 'block';
+    this.container.style.visibility = 'visible';
+    this.container.style.opacity = '1';
   }
 
   dispose(): void {

@@ -210,17 +210,30 @@ export class MoonExplorationScene implements Scene {
 
   init(): void {
     this.gameOverUI.hide();
+    
+    // FIRST: Check if tutorial should be shown (before any cleanup that might interfere)
+    const shouldShowTutorial = !this.saveRepository.isMoonExplorationTutorialShown();
+    
     // Clean up any lingering dialogue from previous scenes
-    this.cleanupDialogue();
+    // BUT: Only clean up if tutorial was already shown (don't remove tutorial that's about to show)
+    // AND: Only clean up ISS tutorial, not moon tutorial
+    if (!shouldShowTutorial) {
+      this.dialogueManager.hide();
+      this.cleanupDialogue();
+    } else {
+      // Tutorial will show - make sure dialogue manager is ready
+      // Don't hide or cleanup, just ensure it's initialized
+    }
     
     // Clean up any lingering PasswordCracker/ISS UI elements from previous scenes
     this.cleanupLingeringUI();
     
-    // Ensure HUD is visible (reattach if it was disposed)
-    this.hud.show();
-    
     this.resetStage();
     this.createIntelPanel();
+    
+    // Ensure HUD is visible (reattach if it was disposed)
+    // Do this AFTER cleanup to ensure it doesn't get removed
+    this.hud.show();
 
     this.createShip();
     this.createRefuelStation();
@@ -239,10 +252,27 @@ export class MoonExplorationScene implements Scene {
     this.eventBus.on(EventTopics.FUEL_EMPTY, this.handleFuelEmpty);
     this.eventBus.on(EventTopics.FUEL_REFUELED, this.handleFuelRefueled);
 
-    // Show tutorial on first load
-    if (!this.tutorialShown) {
-      this.showTutorial();
+    // Show tutorial ONLY if it hasn't been shown before (persisted in save data)
+    // This ensures it only shows once, even after death/restart
+    if (shouldShowTutorial) {
+      // Double-check persistence before showing (defensive)
+      if (!this.saveRepository.isMoonExplorationTutorialShown()) {
+        // Show tutorial immediately - don't delay
+        this.showTutorial();
+        this.saveRepository.setMoonExplorationTutorialShown(true);
+        this.tutorialShown = true;
+      } else {
+        // Already shown, don't show again
+        this.tutorialShown = true;
+      }
+    } else {
+      // Tutorial was already shown, ensure flag is set and dialogue is hidden
       this.tutorialShown = true;
+      this.dialogueManager.hide();
+      // Force cleanup one more time to be absolutely sure
+      setTimeout(() => {
+        this.cleanupDialogue();
+      }, 100);
     }
 
     // Sync render layer state
@@ -269,24 +299,90 @@ export class MoonExplorationScene implements Scene {
    * Dialogue should only appear in tutorial scenes, not in moon exploration
    */
   private cleanupDialogue(): void {
-    // Hide dialogue manager first
+    // Only hide dialogue manager, don't dispose (dispose removes container permanently)
+    // We want to keep the container so tutorial can use it
     this.dialogueManager.hide();
     
     // Find dialogue containers by their distinctive styling (z-index 2000, bottom position)
+    // Be selective - only remove ISS tutorial and old dialogue, NOT moon tutorial
     const allDivs = document.querySelectorAll('div');
     for (const div of allDivs) {
       const style = window.getComputedStyle(div);
-      // Dialogue containers have z-index 2000 and are positioned at bottom
-      // Also check for Neil's name in text content
+      const text = div.textContent || '';
+      const computedZIndex = style.zIndex;
+      
+      // Skip HUD and Intel Panel - check for their distinctive characteristics
+      // HUD is top-right (right: 20px), Intel Panel is top-left (left: 20px)
+      const isHUD = (style.position === 'fixed' && 
+                     (style.top === '20px' || parseFloat(style.top) === 20) &&
+                     (style.right === '20px' || parseFloat(style.right) === 20) &&
+                     (computedZIndex === '110' || parseFloat(computedZIndex) === 110));
+      const isIntelPanel = (style.position === 'fixed' &&
+                            (style.top === '20px' || parseFloat(style.top) === 20) &&
+                            (style.left === '20px' || parseFloat(style.left) === 20) &&
+                            text.includes('Lunar Intel'));
+      
+      // Skip moon exploration tutorial dialogue - it should be allowed to show
+      const isMoonTutorial = text.includes('Moon exploration zone') ||
+                            (text.includes('WASD or arrow keys') && text.includes('asteroids')) ||
+                            (text.includes('data capsule') && text.includes('lunar facts')) ||
+                            (text.includes('refuel station') && text.includes('center of the map')) ||
+                            (text.includes('quiz at the moon icon'));
+      
+      if (isHUD || isIntelPanel || isMoonTutorial) {
+        continue; // Skip HUD, Intel Panel, and Moon tutorial
+      }
+      
+      // Only remove ISS tutorial and other non-moon dialogue
+      // Check for distinctive ISS tutorial text
       if (
-        style.zIndex === '2000' ||
-        (style.position === 'fixed' && style.bottom !== 'auto') ||
-        div.textContent?.includes('Neil') ||
-        div.textContent?.includes('DePaws Tyson')
+        (computedZIndex === '2000' || 
+         (style.position === 'fixed' && 
+          style.bottom !== 'auto' && 
+          style.bottom !== '0px' && 
+          parseFloat(style.bottom) > 0)) &&
+        (text.includes('International Space Station') ||
+         text.includes('guide on this journey') ||
+         (text.includes('Welcome to') && !text.includes('Moon')))
       ) {
         div.remove();
       }
     }
+    
+     // Also check for any images that might be part of dialogue (Neil's portrait)
+     // BUT: Don't remove Neil images that are part of moon tutorial
+     const allImages = document.querySelectorAll('img');
+     for (const img of allImages) {
+       const src = img.src || '';
+       if (src.includes('neilPaws') || src.includes('neil-openMouth')) {
+         const parent = img.parentElement;
+         if (parent) {
+           // Check if parent is a dialogue container
+           const parentStyle = window.getComputedStyle(parent);
+           const parentText = parent.textContent || '';
+           
+           // Don't remove if it's part of moon tutorial
+           const isMoonTutorial = parentText.includes('Moon exploration zone') ||
+                                 parentText.includes('WASD or arrow keys') ||
+                                 parentText.includes('data capsule') ||
+                                 parentText.includes('refuel station') ||
+                                 parentText.includes('quiz at the moon icon');
+           
+           if (isMoonTutorial) {
+             continue; // Skip moon tutorial images
+           }
+           
+           if (parentStyle.position === 'fixed' && 
+               (parentStyle.zIndex === '2000' || parseFloat(parentStyle.zIndex) >= 2000)) {
+             // Only remove if it's ISS tutorial or other non-moon dialogue
+             if (parentText.includes('International Space Station') ||
+                 parentText.includes('guide on this journey')) {
+               parent.remove();
+             }
+           }
+         }
+       }
+     }
   }
 
   /**
@@ -932,33 +1028,15 @@ export class MoonExplorationScene implements Scene {
 
   private buildMoonQuiz(): QuizData {
     const baseQuiz = QUIZZES['moon-quiz'];
-    const collectedFacts = this.dataCapsulesSystem.getCollectedFacts();
-    const questionIds = new Set(collectedFacts.map((fact) => fact.questionId));
-
-    let questions = baseQuiz.questions;
     
-    // If capsules were collected, only show questions that match collected facts
-    if (questionIds.size > 0) {
-      questions = baseQuiz.questions.filter((question) => {
-        if (!question.id) return false;
-        return questionIds.has(question.id);
-      });
-      
-      // If we filtered out all questions, use fallback: show questions that match ANY collected fact
-      // This ensures quiz is always playable
-      if (questions.length === 0) {
-        // Fallback: use all questions if no matches found (shouldn't happen if IDs are correct)
-        questions = baseQuiz.questions;
-      }
-    } else {
-      // No capsules collected - show all questions (harder quiz)
-      questions = baseQuiz.questions;
-    }
+    // Always show ALL questions regardless of collected capsules
+    // Collected facts help the player answer, but all questions should be available
+    const questions = baseQuiz.questions.map((question) => ({ ...question }));
 
     return {
       id: baseQuiz.id,
       title: baseQuiz.title,
-      questions: questions.map((question) => ({ ...question })),
+      questions,
     };
   }
 
@@ -998,10 +1076,14 @@ export class MoonExplorationScene implements Scene {
         this.saveRepository.addVisitedPlanet(planet.id);
         // Hide planet selection UI before transitioning
         this.planetSelectionUI.hide();
-        // Transition to planet scene
-        // SceneManager will handle the transition - if scene doesn't exist, it will fail silently
-        // but that's handled by SceneManager.transitionTo()
-        this.sceneManager.transitionTo(planet.sceneId);
+        // Emit cutscene event with source (Moon) and destination planet
+        this.eventBus.emit(EventTopics.CUTSCENE_START, {
+          cutsceneId: `moon-to-${planet.id}`,
+          sourcePlanet: 'Moon',
+          destinationPlanet: planet.name,
+        });
+        // Transition to cutscene, which will then transition to the planet scene
+        this.sceneManager.transitionTo('cutscene');
       },
     });
   }
@@ -1058,45 +1140,36 @@ export class MoonExplorationScene implements Scene {
     this.gameOverUI.hide();
     
     // Explicitly hide and clean up any dialogue - do NOT show tutorial again
+    // Call multiple times to ensure dialogue is fully removed
     this.dialogueManager.hide();
     this.cleanupDialogue();
+    // Force one more cleanup pass after a brief delay to catch any lingering elements
+    setTimeout(() => {
+      this.dialogueManager.hide();
+      this.cleanupDialogue();
+    }, 50);
     
     // Ensure tutorial flag remains true so tutorial never shows again
+    // Also ensure it's persisted in save data
     this.tutorialShown = true;
+    this.saveRepository.setMoonExplorationTutorialShown(true);
 
-    // Reset or recreate ship
-    if (!this.shipId) {
-      // Ship was removed, recreate it
-      this.createShip();
-    } else {
-      // Reset ship position
-      const position = this.world.getComponent<Position>(
-        this.shipId,
-        'position'
-      );
-      if (position) {
-        position.x = 80;
-        position.y = this.stage.getHeight() - 200;
-        position.angle = 0;
-      }
-
-      // Reset velocity
-      const velocity = this.world.getComponent<Velocity>(
-        this.shipId,
-        'velocity'
-      );
-      if (velocity) {
-        velocity.vx = 0;
-        velocity.vy = 0;
-      }
-
-      // Reset fuel - ensure it's properly reset to 50%
+    // Always remove and recreate ship to ensure it's visible and properly synced
+    if (this.shipId) {
+      this.world.removeEntity(this.shipId);
+      this.shipId = null;
+    }
+    // Always create fresh ship entity
+    this.createShip();
+    
+    // Ensure fuel is properly set after ship creation
+    if (this.shipId) {
       const fuel = this.world.getComponent<Fuel>(this.shipId, 'fuel');
       if (fuel) {
         fuel.current = CONFIG.FUEL_INITIAL; // 50%
         fuel.max = CONFIG.FUEL_MAX;
       } else {
-        // Re-add fuel component if missing
+        // Re-add fuel component if missing (shouldn't happen after createShip, but be safe)
         this.world.addComponent(
           this.shipId,
           createFuel(CONFIG.FUEL_MAX, CONFIG.FUEL_INITIAL)
@@ -1135,12 +1208,22 @@ export class MoonExplorationScene implements Scene {
     this.createDataCapsules();
     
     // Sync entities for rendering - force full sync to update ship position
+    // This must happen after ship is created and fuel is set
     this.entitiesLayer.syncEntities();
     
     // Force stage redraw to ensure all visual updates are rendered
     this.stage.batchDraw();
     
-    // Update HUD to show reset fuel
+    // Update HUD AFTER fuel is definitely reset and ship is created
+    // Verify fuel was set correctly before updating HUD
+    if (this.shipId) {
+      const fuel = this.world.getComponent<Fuel>(this.shipId, 'fuel');
+      if (fuel && fuel.current !== CONFIG.FUEL_INITIAL) {
+        // Force reset if it wasn't set correctly
+        fuel.current = CONFIG.FUEL_INITIAL;
+        fuel.max = CONFIG.FUEL_MAX;
+      }
+    }
     this.updateHud();
     
     // Ensure HUD is visible

@@ -8,7 +8,11 @@ import type { CapsuleFact } from './ecs/components/dataCapsule.js';
 type GameEvents = {
   [EventTopics.QUIZ_PASSED]: { quizId: string };
   [EventTopics.QUIZ_FAILED]: { quizId: string };
-  [EventTopics.CUTSCENE_START]: { cutsceneId: string };
+  [EventTopics.CUTSCENE_START]: { 
+    cutsceneId: string;
+    sourcePlanet?: string;
+    destinationPlanet?: string;
+  };
   [EventTopics.CUTSCENE_END]: { cutsceneId: string };
   [EventTopics.FUEL_EMPTY]: void;
   [EventTopics.FUEL_REFUELED]: { amount: number };

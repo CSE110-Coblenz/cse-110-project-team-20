@@ -5,6 +5,8 @@ import type { Scene, SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
 import type { GameOverUI } from '../ui/gameOver.js';
 import type { SaveRepository } from '../persistence/SaveRepository.js';
+import type { EventBus } from '../engine/events.js';
+import { EventTopics } from '../engine/events/topics.js';
 import { PlanetSelectionUI } from '../ui/planetSelection.js';
 import type { PlanetInfo } from '../ui/planetSelection.js';
 
@@ -13,6 +15,7 @@ export class PlaceholderPlanetScene implements Scene {
   private stage: RenderStage;
   private gameOverUI: GameOverUI;
   private saveRepository: SaveRepository;
+  private eventBus: EventBus;
   private planetSelectionUI: PlanetSelectionUI;
   private container: HTMLDivElement | null = null;
   private planetName: string;
@@ -22,12 +25,14 @@ export class PlaceholderPlanetScene implements Scene {
     stage: RenderStage,
     gameOverUI: GameOverUI,
     saveRepository: SaveRepository,
+    eventBus: EventBus,
     planetName: string
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
     this.gameOverUI = gameOverUI;
     this.saveRepository = saveRepository;
+    this.eventBus = eventBus;
     this.planetSelectionUI = new PlanetSelectionUI(sceneManager);
     this.planetName = planetName;
   }
@@ -116,7 +121,14 @@ export class PlaceholderPlanetScene implements Scene {
         onSelect: (planet: PlanetInfo) => {
           this.saveRepository.addVisitedPlanet(planet.id);
           this.planetSelectionUI.hide();
-          this.sceneManager.transitionTo(planet.sceneId);
+          // Emit cutscene event with source (current planet) and destination
+          this.eventBus.emit(EventTopics.CUTSCENE_START, {
+            cutsceneId: `${this.planetName.toLowerCase()}-to-${planet.id}`,
+            sourcePlanet: this.planetName,
+            destinationPlanet: planet.name,
+          });
+          // Transition to cutscene, which will then transition to the planet scene
+          this.sceneManager.transitionTo('cutscene');
         },
       });
     };
