@@ -46,10 +46,10 @@ export class CutsceneScene implements Scene {
 
     const issLabel = new Konva.Text({
       text: 'ISS',
-      x: 120,
+      x: 110,
       y: this.stage.getHeight() / 2 + 50,
       fontSize: 20,
-      fontFamily: 'Arial',
+      fontFamily: 'Press Start 2P',
       fill: '#ffffff',
     });
     this.stage.backgroundLayer.add(issLabel);
@@ -72,7 +72,7 @@ export class CutsceneScene implements Scene {
       x: this.stage.getWidth() - 180,
       y: this.stage.getHeight() / 2 + 70,
       fontSize: 20,
-      fontFamily: 'Arial',
+      fontFamily: 'Press Start 2P',
       fill: '#ffffff',
     });
     this.stage.backgroundLayer.add(moonLabel);
@@ -93,7 +93,7 @@ export class CutsceneScene implements Scene {
       x: this.stage.getWidth() / 2,
       y: 50,
       fontSize: 24,
-      fontFamily: 'Arial',
+      fontFamily: 'Press Start 2P',
       fill: '#ffffff',
       align: 'center',
     });

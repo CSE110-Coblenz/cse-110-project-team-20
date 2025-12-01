@@ -50,7 +50,7 @@ export class MoonScene implements Scene {
       x: this.stage.getWidth() / 2,
       y: 320,
       fontSize: 32,
-      fontFamily: 'Arial',
+      fontFamily: 'Press Start 2P',
       fill: '#ffffff',
       align: 'center',
       fontWeight: 'bold',
@@ -63,7 +63,7 @@ export class MoonScene implements Scene {
       x: this.stage.getWidth() / 2,
       y: 370,
       fontSize: 24,
-      fontFamily: 'Arial',
+      fontFamily: 'Press Start 2P',
       fill: '#4a9eff',
       align: 'center',
     });

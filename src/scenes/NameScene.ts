@@ -36,10 +36,10 @@ export class NameScene implements Scene {
     const prompt = new Konva.Text({
       text: 'Enter Your Name',
       x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2 - 80,
+      y: this.stage.getHeight() / 2 - 110,
       fontSize: 32,
-      fontFamily: 'Arial',
-      fill: '#ffffff',
+      fontFamily: 'Press Start 2P',
+      fill: '#ff914d',
       align: 'center',
     });
     prompt.offsetX(prompt.width() / 2);
@@ -67,6 +67,7 @@ export class NameScene implements Scene {
     this.input.style.cssText = `
       padding: 12px 16px;
       font-size: 18px;
+      font-family: 'Press Start 2P';
       border: 2px solid #667eea;
       border-radius: 8px;
       background: #2a2a3e;
