@@ -76,8 +76,9 @@ interface PlanetConfig {
   refuelUses: number;
 }
 
-// Scale factor for moon exploration - makes everything smaller to feel like a bigger map
-const MOON_SCALE = 0.7; // 70% size
+// Scale factor for exploration scenes - makes everything smaller to feel like a bigger map
+const MOON_SCALE = 0.7; // 70% size for ship, asteroids, capsules
+const PLANET_DESTINATION_SCALE = 0.7; // 70% size for planet destination icons & hitboxes
 
 function getPlanetConfig(planetId: PlanetId): PlanetConfig {
   // Difficulty: Moon is baseline; planets get harder the farther they are,
@@ -812,9 +813,10 @@ export class PlanetExplorationScene implements Scene {
   }
 
   private createPlanetDestination(): void {
-    // Make planet target large and obvious, similar in size to the ISS sprite
-    const destinationWidth = 180;
-    const destinationHeight = 180;
+    // Planet target size, scaled down so it feels consistent with smaller ship/objects
+    const baseSize = 180;
+    const destinationWidth = baseSize * PLANET_DESTINATION_SCALE;
+    const destinationHeight = baseSize * PLANET_DESTINATION_SCALE;
     const padding = 80;
     // Position moon icon to avoid overlap with fuel bar (200px wide + 20px margin = 220px from right)
     // Add extra margin to ensure visibility
