@@ -57,13 +57,16 @@ interface CapsuleDefinition {
   facts: CapsuleFact[];
 }
 
+// Scale factor for moon exploration - makes everything smaller to feel like a bigger map
+const MOON_SCALE = 0.7; // 70% size
+
 const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
   {
     id: 'tranquility-capsule',
     x: 260,
     y: 180,
-    width: 72,
-    height: 72,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
     facts: [
       {
         id: 'tranquility-apollo-landing',
@@ -81,8 +84,8 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
     id: 'tycho-capsule',
     x: 520,
     y: 360,
-    width: 72,
-    height: 72,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
     facts: [
       {
         id: 'tycho-young-crater',
@@ -100,8 +103,8 @@ const CAPSULE_DEFINITIONS: CapsuleDefinition[] = [
     id: 'copernicus-capsule',
     x: 900,
     y: 220,
-    width: 72,
-    height: 72,
+    width: 72 * MOON_SCALE,
+    height: 72 * MOON_SCALE,
     facts: [
       {
         id: 'copernicus-terra',
@@ -157,6 +160,7 @@ export class MoonExplorationScene implements Scene {
   private intelPanel: HTMLDivElement | null = null;
   private intelCountEl: HTMLParagraphElement | null = null;
   private intelFactEl: HTMLParagraphElement | null = null;
+  private refuelStationUsed = false;
 
   constructor(
     sceneManager: SceneManager,
@@ -223,6 +227,7 @@ export class MoonExplorationScene implements Scene {
     );
     this.eventBus.on(EventTopics.QUIZ_PASSED, this.handleQuizPassed);
     this.eventBus.on(EventTopics.FUEL_EMPTY, this.handleFuelEmpty);
+    this.eventBus.on(EventTopics.FUEL_REFUELED, this.handleFuelRefueled);
 
     // Show tutorial on first load
     if (!this.tutorialShown) {
@@ -301,8 +306,8 @@ export class MoonExplorationScene implements Scene {
 
   private createRefuelStation(): void {
     this.refuelStationId = this.world.createEntity();
-    const stationWidth = 140;
-    const stationHeight = 120;
+    const stationWidth = 140 * MOON_SCALE;
+    const stationHeight = 120 * MOON_SCALE;
     const stationX = this.stage.getWidth() / 2 - stationWidth / 2;
     const stationY = this.stage.getHeight() / 2 - stationHeight / 2;
 
@@ -328,8 +333,8 @@ export class MoonExplorationScene implements Scene {
   }
 
   private createMoonDestination(): void {
-    const destinationWidth = 180;
-    const destinationHeight = 180;
+    const destinationWidth = 180 * MOON_SCALE;
+    const destinationHeight = 180 * MOON_SCALE;
     const padding = 80;
     // Position moon icon to avoid overlap with fuel bar (200px wide + 20px margin = 220px from right)
     // Add extra margin to ensure visibility
@@ -441,6 +446,7 @@ export class MoonExplorationScene implements Scene {
     );
     this.eventBus.off(EventTopics.QUIZ_PASSED, this.handleQuizPassed);
     this.eventBus.off(EventTopics.FUEL_EMPTY, this.handleFuelEmpty);
+    this.eventBus.off(EventTopics.FUEL_REFUELED, this.handleFuelRefueled);
     this.keyboard.dispose();
     this.hud.dispose();
     this.dialogueManager.dispose();
@@ -487,11 +493,11 @@ export class MoonExplorationScene implements Scene {
 
   private createAsteroids(): void {
     const asteroidConfigs = [
-      { id: 'asteroid-1', x: 320, y: 280, width: 90, height: 90 },
-      { id: 'asteroid-2', x: 540, y: 160, width: 80, height: 80 },
-      { id: 'asteroid-3', x: 760, y: 420, width: 70, height: 70 },
-      { id: 'asteroid-4', x: 980, y: 260, width: 85, height: 85 },
-      { id: 'asteroid-5', x: 640, y: 520, width: 75, height: 75 },
+      { id: 'asteroid-1', x: 320, y: 280, width: 90 * MOON_SCALE, height: 90 * MOON_SCALE },
+      { id: 'asteroid-2', x: 540, y: 160, width: 80 * MOON_SCALE, height: 80 * MOON_SCALE },
+      { id: 'asteroid-3', x: 760, y: 420, width: 70 * MOON_SCALE, height: 70 * MOON_SCALE },
+      { id: 'asteroid-4', x: 980, y: 260, width: 85 * MOON_SCALE, height: 85 * MOON_SCALE },
+      { id: 'asteroid-5', x: 640, y: 520, width: 75 * MOON_SCALE, height: 75 * MOON_SCALE },
     ];
 
     asteroidConfigs.forEach((config) => {
@@ -762,7 +768,13 @@ export class MoonExplorationScene implements Scene {
     );
     if (!shipPosition) return;
 
-    const shipBox = createShipBoundingBox(shipPosition.x, shipPosition.y);
+    // Scale ship collision box for moon scene
+    const shipBox = {
+      x: shipPosition.x,
+      y: shipPosition.y,
+      width: CONFIG.SHIP_WIDTH * MOON_SCALE,
+      height: CONFIG.SHIP_HEIGHT * MOON_SCALE,
+    };
     if (checkAABBCollision(shipBox, this.moonDestinationArea)) {
       this.destinationCooldownUntil = Date.now() + 1500;
       this.handleMoonDestinationReached();
@@ -852,6 +864,27 @@ export class MoonExplorationScene implements Scene {
     }
   };
 
+  private handleFuelRefueled = (): void => {
+    // Remove refuel station after first use
+    if (!this.refuelStationUsed && this.refuelStationId) {
+      this.refuelStationUsed = true;
+      
+      // Remove trigger
+      this.triggersSystem.removeTrigger('moon-refuel');
+      
+      // Remove visual
+      if (this.refuelNode) {
+        this.refuelNode.destroy();
+        this.refuelNode = null;
+        this.stage.backgroundLayer.batchDraw();
+      }
+      
+      // Remove entity
+      this.world.removeEntity(this.refuelStationId);
+      this.refuelStationId = null;
+    }
+  };
+
   private handleFuelEmpty = (): void => {
     if (!this.shipId) return;
     const velocity = this.world.getComponent(
@@ -878,6 +911,8 @@ export class MoonExplorationScene implements Scene {
   }
 
   private restartMoonExploration(): void {
+    // Reset refuel station flag
+    this.refuelStationUsed = false;
     this.gameOverUI.hide();
     // Clean up any lingering dialogue
     this.cleanupDialogue();
@@ -933,6 +968,11 @@ export class MoonExplorationScene implements Scene {
     this.asteroidEntities.clear();
     this.asteroidNodes.forEach((node) => node.destroy());
     this.asteroidNodes.clear();
+    
+    // Recreate refuel station if it was used
+    if (this.refuelStationUsed || !this.refuelStationId) {
+      this.createRefuelStation();
+    }
     
     // Recreate asteroids and capsules
     this.createAsteroids();
