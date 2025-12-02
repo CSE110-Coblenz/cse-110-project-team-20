@@ -82,9 +82,9 @@ export class DialogueManager {
           />
         </div>
         <div style="flex: 1;">
-          <h3 style="margin: 0 0 12px 0; color: #4a9eff; font-size: 20px;">${characterName}</h3>
-          <p style="margin: 0 0 16px 0; color: #ffffff; font-size: 16px; line-height: 1.6;">${dialogue.text}</p>
-          <p style="margin: 0; color: #888; font-size: 12px; font-style: italic; text-align: right;">Click or press any key to continue...</p>
+          <h3 style="margin: 0 0 14px 0; color: #4a9eff; font-family: 'Press Start 2P'; font-size: 15px;">${characterName}</h3>
+          <p style="margin: 0 0 16px 0; color: #ffffff; font-family: 'Press Start 2P'; font-size: 15px; line-height: 1.6;">${dialogue.text}</p>
+          <p style="margin: 0; color: #888; font-family: 'Press Start 2P'; font-size: 12px; font-style: italic; text-align: right;">Click or press any key to continue...</p>
         </div>
       </div>
     `;

@@ -7,8 +7,8 @@ import type { RenderStage } from '../render/stage.js';
 import type { GameOverUI } from '../ui/gameOver.js';
 import Konva from 'konva';
 import { createButton } from '../ui/buttons.js';
-import { drawEarth } from '../render/titleSceneBackground.js';
-import { addStars } from '../render/titleSceneBackground.js';
+import { drawEarth } from '../render/layers/background.js';
+import { addStars } from '../render/layers/background.js';
 
 
 export class TitleScene implements Scene {
@@ -44,7 +44,7 @@ export class TitleScene implements Scene {
     const title = new Konva.Text({
       text: 'Cat Space Agency',
       x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2 - 180,
+      y: this.stage.getHeight() / 2 - 140,
       fontSize: 48,
       fontFamily: 'Press Start 2P',
       fontStyle: 'bold',
@@ -56,7 +56,7 @@ export class TitleScene implements Scene {
     const subtitle = new Konva.Text({
       text: 'Educational Space Adventure',
       x: this.stage.getWidth() / 2,
-      y: this.stage.getHeight() / 2 - 20,
+      y: this.stage.getHeight() / 2 - 50,
       fontSize: 24,
       fontFamily: 'Press Start 2P',
       fill: '#ffffff',

@@ -15,7 +15,7 @@ export class HUD {
       right: 20px;
       z-index: 100;
       color: white;
-      font-family: Arial, sans-serif;
+      font-family: 'Press Start 2P';
     `;
 
     this.fuelText = document.createElement('div');
@@ -24,6 +24,7 @@ export class HUD {
       margin-bottom: 8px;
       font-weight: bold;
       font-size: 14px;
+      font-family: 'Press Start 2P';
     `;
 
     this.fuelBar = document.createElement('div');

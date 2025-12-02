@@ -117,14 +117,14 @@ export class QuizUI {
     const allCorrect = correctCount === this.quizData.questions.length;
 
     let html = `
-      <h2 style="margin-bottom: 16px;">Quiz Results</h2>
-      <p style="margin-bottom: 16px;">
+      <h2 style="margin-bottom: 16px; font-family: 'Press Start 2P'; ">Quiz Results</h2>
+      <p style="margin-bottom: 16px; font-family: 'Press Start 2P'; ">
         You got ${correctCount} out of ${this.quizData.questions.length} correct.
       </p>
     `;
 
     if (allCorrect) {
-      html += '<p style="color: #00ff00; margin-bottom: 16px;">Congratulations! You passed!</p>';
+      html += `<p style="color: #00ff00; margin-bottom: 16px; font-family: 'Press Start 2P'; ">Congratulations! You passed!</p>`;
       const closeBtn = createButton('Continue', () => {
         this.dialog.hide();
         this.eventBus.emit(EventTopics.QUIZ_PASSED, { quizId: this.quizData!.id });
@@ -133,7 +133,7 @@ export class QuizUI {
       this.dialog.show(html);
       this.dialog.content.appendChild(closeBtn);
     } else {
-      html += '<p style="color: #ff0000; margin-bottom: 16px;">Try again!</p>';
+      html += `<p style="color: #ff0000; margin-bottom: 16px; font-family: 'Press Start 2P'; ">Try again!</p>`;
       const retryBtn = createButton('Retry', () => {
         this.currentQuestion = 0;
         this.selectedAnswers = [];

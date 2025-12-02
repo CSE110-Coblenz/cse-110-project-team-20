@@ -84,7 +84,7 @@ export class PasswordCracker {
       <p style="
         margin-bottom: 24px; 
         color: #cccccc; 
-        font-family: 'Courier New', monospace; 
+        font-family: 'Press Start 2P'; 
         font-size: 16px; 
         line-height: 1.6;
         background: #1a1a2e; 
@@ -102,6 +102,7 @@ export class PasswordCracker {
         style="
           padding: 12px 16px;
           font-size: 18px;
+          font-family: 'Press Start 2P';
           border: 2px solid #667eea;
           border-radius: 8px;
           background: #2a2a3e;
@@ -170,8 +171,8 @@ export class PasswordCracker {
     if (!this.options || !success) return;
 
     const html = `
-      <h2 style="margin-bottom: 16px; color: #00ff00;">Access Granted</h2>
-      <p style="margin-bottom: 16px; color: #cccccc;">System unlocked.</p>
+      <h2 style="margin-bottom: 16px; color: #00ff00; font-family: 'Press Start 2P'; ">Access Granted</h2>
+      <p style="margin-bottom: 16px; color: #cccccc; font-family: 'Press Start 2P'; ">System unlocked.</p>
     `;
     this.dialog.show(html);
 

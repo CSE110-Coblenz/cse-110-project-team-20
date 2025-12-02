@@ -289,10 +289,10 @@ export class ISSScene implements Scene {
       // Add ISS label below the image
       const issLabel = new Konva.Text({
         text: 'ISS',
-        x: stationX,
-        y: stationY + height / 2 + 10,
-        fontSize: 24,
-        fontFamily: 'Arial',
+        x: stationX + 10,
+        y: stationY + height / 2,
+        fontSize: 20,
+        fontFamily: 'Press Start 2P',
         fill: '#ffffff',
         fontWeight: 'bold',
         align: 'center',
