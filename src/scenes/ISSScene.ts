@@ -199,7 +199,9 @@ export class ISSScene implements Scene {
 
     this.eventBus.on(EventTopics.FUEL_REFUELED, () => {
       if (!this.quizShown) {
-        this.showPasswordGame();
+        this.dialogueManager.showSequence('password-hint', () => {
+          this.showPasswordGame();
+        });
         this.quizShown = true;
       }
     });
