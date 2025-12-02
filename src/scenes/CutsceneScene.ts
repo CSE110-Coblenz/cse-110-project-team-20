@@ -1,5 +1,7 @@
 /**
- * Cutscene Scene - scripted tween from ISS to Moon
+ * Cutscene Scene - show an image (cut_scene.jpeg) with a simple fade / pan / zoom
+ * Replaces the previous ship-sprite tween. After the cutscene finishes it
+ * transitions to the ISS scene.
  */
 import type { Scene } from '../engine/sceneManager.js';
 import type { SceneManager } from '../engine/sceneManager.js';
@@ -12,149 +14,138 @@ export class CutsceneScene implements Scene {
   private sceneManager: SceneManager;
   private stage: RenderStage;
   private saveRepository: SaveRepository;
-  private shipSprite: Konva.Rect | null = null;
+  private gameOverUI?: GameOverUI;
+
+  private imageNode: Konva.Image | null = null;
   private tween: Konva.Tween | null = null;
+  private caption: Konva.Text | null = null;
   private completed = false;
 
   constructor(
     sceneManager: SceneManager,
     stage: RenderStage,
     saveRepository: SaveRepository,
-    _gameOverUI: GameOverUI
+    _gameOverUI?: GameOverUI
   ) {
     this.sceneManager = sceneManager;
     this.stage = stage;
     this.saveRepository = saveRepository;
+    this.gameOverUI = _gameOverUI;
   }
 
   init(): void {
-    // Clear layers
+    // Clear previous visuals
     this.stage.backgroundLayer.destroyChildren();
-    this.stage.uiLayer.destroyChildren();
+    if (this.stage.uiLayer) this.stage.uiLayer.destroyChildren();
 
-    // Draw ISS (left side)
-    const iss = new Konva.Rect({
-      x: 100,
-      y: this.stage.getHeight() / 2 - 40,
-      width: 80,
-      height: 80,
-      fill: '#aaaaaa',
-      stroke: '#888888',
-      strokeWidth: 2,
-    });
-    this.stage.backgroundLayer.add(iss);
+    // Load the cutscene image (replace path if you keep assets elsewhere)
+    const img = new Image();
+    img.src = '/assets/cut_scene.jpeg'; // <-- changed jpeg line: put your file at public/assets/cut_scene.jpeg
 
-    const issLabel = new Konva.Text({
-      text: 'ISS',
-      x: 110,
-      y: this.stage.getHeight() / 2 + 50,
-      fontSize: 20,
-      fontFamily: 'Press Start 2P',
-      fill: '#ffffff',
-    });
-    this.stage.backgroundLayer.add(issLabel);
+    img.onload = () => {
+      const sw = this.stage.getWidth();
+      const sh = this.stage.getHeight();
 
-    // Draw Moon (right side)
-    const moon = new Konva.Rect({
-      x: this.stage.getWidth() - 200,
-      y: this.stage.getHeight() / 2 - 60,
-      width: 120,
-      height: 120,
-      fill: '#cccccc',
-      stroke: '#999999',
-      strokeWidth: 2,
-      cornerRadius: 60,
-    });
-    this.stage.backgroundLayer.add(moon);
+      const imgW = img.width;
+      const imgH = img.height;
+      const scale = Math.max(sw / imgW, sh / imgH);
 
-    const moonLabel = new Konva.Text({
-      text: 'Moon',
-      x: this.stage.getWidth() - 180,
-      y: this.stage.getHeight() / 2 + 70,
-      fontSize: 20,
-      fontFamily: 'Press Start 2P',
-      fill: '#ffffff',
-    });
-    this.stage.backgroundLayer.add(moonLabel);
+      this.imageNode = new Konva.Image({
+        image: img,
+        x: (sw - imgW * scale) / 2,
+        y: (sh - imgH * scale) / 2,
+        width: imgW * scale,
+        height: imgH * scale,
+        opacity: 0,
+      });
 
-    // Create ship sprite that will move
-    this.shipSprite = new Konva.Rect({
-      x: 200,
-      y: this.stage.getHeight() / 2 - 20,
-      width: 40,
-      height: 40,
-      fill: '#4a9eff',
-    });
-    this.stage.backgroundLayer.add(this.shipSprite);
+      this.stage.backgroundLayer.add(this.imageNode);
+      this.stage.backgroundLayer.batchDraw();
 
-    // Add narration text
-    const narration = new Konva.Text({
-      text: 'Traveling from ISS to the Moon...',
-      x: this.stage.getWidth() / 2,
-      y: 50,
-      fontSize: 24,
-      fontFamily: 'Press Start 2P',
-      fill: '#ffffff',
-      align: 'center',
-    });
-    narration.offsetX(narration.width() / 2);
-    this.stage.uiLayer.add(narration);
+      // Fade in then gentle zoom/pan, then transition to ISS
+      this.tween = new Konva.Tween({
+        node: this.imageNode,
+        duration: 3.0, // seconds
+        opacity: 1,
+        scaleX: 1.03,
+        scaleY: 1.03,
+        x: this.imageNode.x() - 15,
+        y: this.imageNode.y() - 8,
+        easing: Konva.Easings.EaseInOut,
+        onFinish: () => {
+          // hold final frame briefly then transition
+          setTimeout(() => {
+            this.complete();
+          }, 800);
+        },
+      });
 
-    this.stage.backgroundLayer.batchDraw();
-    this.stage.uiLayer.batchDraw();
+      this.tween.play();
 
-    // Start tween animation
-    this.startTween();
-  }
+      // optional caption on UI layer
+      this.caption = new Konva.Text({
+        text: 'Traveling to the ISS...',
+        x: sw / 2,
+        y: sh - 72,
+        fontSize: 18,
+        fontFamily: 'Arial',
+        fill: '#ffffff',
+        opacity: 0.9,
+        align: 'center',
+      });
+      this.caption.offsetX(this.caption.width() / 2);
+      if (this.stage.uiLayer) {
+        this.stage.uiLayer.add(this.caption);
+        this.stage.uiLayer.batchDraw();
+      }
+    };
 
-  private startTween(): void {
-    if (!this.shipSprite) return;
-
-    // Animate ship from ISS to Moon
-    this.tween = new Konva.Tween({
-      node: this.shipSprite,
-      x: this.stage.getWidth() - 240,
-      duration: 3, // 3 seconds
-      easing: (t: number) => t, // linear
-      onFinish: () => {
-        this.complete();
-      },
-    });
-
-    this.tween.play();
+    img.onerror = () => {
+      console.error('Failed to load cutscene image:', img.src);
+      // fallback: short delay then go to ISS
+      setTimeout(() => this.sceneManager.transitionTo('iss'), 800);
+    };
   }
 
   private complete(): void {
     if (this.completed) return;
     this.completed = true;
 
-    // Update save data
-    this.saveRepository.setTutorialDone(true);
-    this.saveRepository.setExplorationUnlocked(true);
+    // Update save/progress if needed (keep behavior consistent with prior cutscene)
+    try {
+      this.saveRepository.setTutorialDone?.(true);
+      this.saveRepository.setExplorationUnlocked?.(true);
+    } catch {
+      // ignore if methods absent; SaveRepository may expose different helpers
+    }
 
-    // Wait a moment then transition
-    setTimeout(() => {
-      this.sceneManager.transitionTo('moon');
-    }, 1000);
+    // Transition to ISS
+    this.sceneManager.transitionTo('iss');
   }
 
   update(_dt: number): void {
-    // Tween handles updates automatically
-    // Just need to batch draw
+    // Animation handled by Konva.Tween
   }
 
   render(): void {
-    this.stage.batchDraw();
+    // Static visuals; Konva handles rendering
   }
 
   dispose(): void {
     if (this.tween) {
-      this.tween.destroy();
+      this.tween.pause();
+      this.tween = null;
     }
-    this.shipSprite = null;
-    this.tween = null;
+    if (this.imageNode) {
+      this.imageNode.destroy();
+      this.imageNode = null;
+    }
+    if (this.caption) {
+      this.caption.destroy();
+      this.caption = null;
+    }
+    // ensure layers are clean
     this.stage.backgroundLayer.destroyChildren();
-    this.stage.uiLayer.destroyChildren();
+    if (this.stage.uiLayer) this.stage.uiLayer.destroyChildren();
   }
 }
-
