@@ -2,6 +2,8 @@
  * Moon Exploration Scene - free-fly map with destination, refuel station,
  * and collectible data capsules (added in later steps).
  */
+import { type DialogueSequence } from '../content/dialogue.js';
+import { PasswordCracker } from '../ui/passwordCracker.js';
 import type { Scene, SceneManager } from '../engine/sceneManager.js';
 import type { RenderStage } from '../render/stage.js';
 import type { World } from '../engine/ecs/world.js';
@@ -583,6 +585,7 @@ export class PlanetExplorationScene implements Scene {
   private readonly quizConfirmation: QuizConfirmation;
   private readonly dialogueManager: DialogueManager;
   private readonly planetSelectionUI: PlanetSelectionUI;
+  private readonly passwordCracker: PasswordCracker;
   private tutorialShown = false;
   // Which planet this exploration scene represents.
   private readonly planetId: PlanetId;
@@ -652,6 +655,7 @@ export class PlanetExplorationScene implements Scene {
     this.quizConfirmation = new QuizConfirmation();
     this.dialogueManager = new DialogueManager();
     this.planetSelectionUI = new PlanetSelectionUI(sceneManager);
+    this.passwordCracker = new PasswordCracker(this.eventBus);
   }
 
   init(): void {
@@ -757,6 +761,7 @@ export class PlanetExplorationScene implements Scene {
         !this.quizUI.isShowing() &&
         !this.quizConfirmation.isShowing() &&
         !this.dialogueManager.isShowing() &&
+        !this.passwordCracker.isShowing() &&
         now >= this.knockbackDisableUntil
       );
     });
@@ -1030,6 +1035,7 @@ export class PlanetExplorationScene implements Scene {
     this.quizUI.dispose();
     this.quizConfirmation.dispose();
     this.planetSelectionUI.dispose();
+    this.passwordCracker.dispose();
 
     if (this.refuelNode) {
       this.refuelNode.destroy();
@@ -1561,23 +1567,56 @@ export class PlanetExplorationScene implements Scene {
     this.planetSelectionUI.show({
       visitedPlanets,
       onSelect: (planet: PlanetInfo) => {
-        // Mark planet as visited
-        this.saveRepository.addVisitedPlanet(planet.id);
-        // Hide planet selection UI before transitioning
+        // 1. Hide the selection UI immediately
         this.planetSelectionUI.hide();
-        // First transition to cutscene so it can subscribe to CUTSCENE_START
-        this.sceneManager.transitionTo('cutscene');
-        // Then emit cutscene event with source (current planet) and destination planet
-        setTimeout(() => {
-          this.eventBus.emit(EventTopics.CUTSCENE_START, {
-            cutsceneId: `${this.planetId}-to-${planet.id}`,
-            sourcePlanet:
-              this.planetId === 'moon'
-                ? 'Moon'
-                : this.planetId.charAt(0).toUpperCase() + this.planetId.slice(1),
-            destinationPlanet: planet.name,
+
+        // 2. Create a custom dialogue for this specific trip
+        const travelSequence: DialogueSequence = {
+          'travel-auth': [{
+            id: 'auth-1',
+            character: 'Neil',
+            text: `Excellent choice! To travel to ${planet.name}, we need to engage the warp drive. Please enter the security authorization code.`
+          }]
+        };
+
+        // 3. Show the dialogue
+        this.dialogueManager.showSequence('travel-auth', () => {
+          
+          // 4. After dialogue closes, show the Password Cracker
+          this.passwordCracker.show({
+            id: 'planet-travel-auth',
+            title: `Destination: ${planet.name}`,
+            puzzleSetKey: 'iss' // Using ISS puzzles for now
           });
-        }, 0);
+
+          // 5. Define what happens when they pass
+          const handleAuthSuccess = (event: { minigameId: string }) => {
+            if (event.minigameId === 'planet-travel-auth') {
+              // Clean up the listener so it doesn't fire twice
+              this.eventBus.off('minigame:passed', handleAuthSuccess);
+
+              // 6. NOW proceed with the original transition logic
+              this.saveRepository.addVisitedPlanet(planet.id);
+              
+              this.sceneManager.transitionTo('cutscene');
+              
+              setTimeout(() => {
+                this.eventBus.emit(EventTopics.CUTSCENE_START, {
+                  cutsceneId: `${this.planetId}-to-${planet.id}`,
+                  sourcePlanet:
+                    this.planetId === 'moon'
+                      ? 'Moon'
+                      : this.planetId.charAt(0).toUpperCase() + this.planetId.slice(1),
+                  destinationPlanet: planet.name,
+                });
+              }, 0);
+            }
+          };
+
+          // Start listening for the success event
+          this.eventBus.on('minigame:passed', handleAuthSuccess);
+
+        }, travelSequence); // Pass our custom sequence here
       },
     });
   }

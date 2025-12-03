@@ -9,6 +9,9 @@ import type { EventBus } from '../engine/events.js';
 import { EventTopics } from '../engine/events/topics.js';
 import { PlanetSelectionUI } from '../ui/planetSelection.js';
 import type { PlanetInfo } from '../ui/planetSelection.js';
+// --- 1. ADD NEW IMPORTS ---
+import { PasswordCracker } from '../ui/passwordCracker.js';
+import { DialogueManager, type DialogueSequence } from '../content/dialogue.js';
 
 export class PlaceholderPlanetScene implements Scene {
   private sceneManager: SceneManager;
@@ -19,6 +22,9 @@ export class PlaceholderPlanetScene implements Scene {
   private planetSelectionUI: PlanetSelectionUI;
   private container: HTMLDivElement | null = null;
   private planetName: string;
+  // --- 2. ADD NEW PROPERTIES ---
+  private passwordCracker: PasswordCracker;
+  private dialogueManager: DialogueManager;
 
   constructor(
     sceneManager: SceneManager,
@@ -35,6 +41,9 @@ export class PlaceholderPlanetScene implements Scene {
     this.eventBus = eventBus;
     this.planetSelectionUI = new PlanetSelectionUI(sceneManager);
     this.planetName = planetName;
+    // --- 3. INITIALIZE NEW COMPONENTS ---
+    this.passwordCracker = new PasswordCracker(eventBus);
+    this.dialogueManager = new DialogueManager();
   }
 
   init(): void {
@@ -112,28 +121,61 @@ export class PlaceholderPlanetScene implements Scene {
       backButton.style.transform = 'scale(1)';
       backButton.style.boxShadow = 'none';
     };
+    
+    // --- 4. UPDATE BUTTON CLICK HANDLER WITH NEW FLOW ---
     backButton.onclick = () => {
-      // Show planet selection instead of going directly to moon-exploration
-      // This prevents the moon level from replaying
       const visitedPlanets = new Set(this.saveRepository.getVisitedPlanets());
       this.planetSelectionUI.show({
         visitedPlanets,
         onSelect: (planet: PlanetInfo) => {
-          this.saveRepository.addVisitedPlanet(planet.id);
+          // 1. Hide UI
           this.planetSelectionUI.hide();
-          // First transition to cutscene so it can subscribe to CUTSCENE_START
-          this.sceneManager.transitionTo('cutscene');
-          // Then emit cutscene event with source (current planet) and destination
-          setTimeout(() => {
-            this.eventBus.emit(EventTopics.CUTSCENE_START, {
-              cutsceneId: `${this.planetName.toLowerCase()}-to-${planet.id}`,
-              sourcePlanet: this.planetName,
-              destinationPlanet: planet.name,
+
+          // 2. Custom Dialogue
+          const travelSequence: DialogueSequence = {
+            'travel-auth': [{
+              id: 'auth-1',
+              character: 'Neil',
+              text: `Preparing route to ${planet.name}. Please enter security authorization to engage hyperdrive.`
+            }]
+          };
+
+          // 3. Show Dialogue
+          this.dialogueManager.showSequence('travel-auth', () => {
+            
+            // 4. Show Password Cracker
+            this.passwordCracker.show({
+              id: 'planet-travel-auth',
+              title: `Destination: ${planet.name}`,
+              puzzleSetKey: 'iss'
             });
-          }, 0);
+
+            // 5. Handle Success
+            const handleAuthSuccess = (event: { minigameId: string }) => {
+              if (event.minigameId === 'planet-travel-auth') {
+                this.eventBus.off('minigame:passed', handleAuthSuccess);
+                
+                // 6. Transition
+                this.saveRepository.addVisitedPlanet(planet.id);
+                this.sceneManager.transitionTo('cutscene');
+                
+                setTimeout(() => {
+                  this.eventBus.emit(EventTopics.CUTSCENE_START, {
+                    cutsceneId: `${this.planetName.toLowerCase()}-to-${planet.id}`,
+                    sourcePlanet: this.planetName,
+                    destinationPlanet: planet.name,
+                  });
+                }, 0);
+              }
+            };
+
+            this.eventBus.on('minigame:passed', handleAuthSuccess);
+
+          }, travelSequence);
         },
       });
     };
+    // ----------------------------------------------------
 
     panel.appendChild(title);
     panel.appendChild(message);
@@ -158,6 +200,8 @@ export class PlaceholderPlanetScene implements Scene {
     }
     this.container = null;
     this.planetSelectionUI.dispose();
+    // --- 5. CLEAN UP NEW COMPONENTS ---
+    this.passwordCracker.dispose();
+    this.dialogueManager.dispose();
   }
 }
-
