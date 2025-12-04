@@ -43,7 +43,7 @@ export class TitleScene implements Scene {
     // Add title text to background layer
     const title = new Konva.Text({
       text: 'Cat Space Agency',
-      x: this.stage.getWidth() / 2,
+      x: 257,
       y: this.stage.getHeight() / 2 - 140,
       fontSize: 48,
       fontFamily: 'Press Start 2P',
@@ -51,18 +51,16 @@ export class TitleScene implements Scene {
       fill: '#ff914d',
       align: 'center',
     });
-    title.offsetX(title.width() / 2);
 
     const subtitle = new Konva.Text({
       text: 'Educational Space Adventure',
-      x: this.stage.getWidth() / 2,
+      x: 320,
       y: this.stage.getHeight() / 2 - 50,
       fontSize: 24,
       fontFamily: 'Press Start 2P',
       fill: '#ffffff',
       align: 'center',
     });
-    subtitle.offsetX(subtitle.width() / 2);
 
     this.stage.backgroundLayer.add(title);
     this.stage.backgroundLayer.add(subtitle);
