@@ -47,10 +47,10 @@ export class QuizUI {
     }
 
     let html = `
-      <h2 style="margin-bottom: 16px; color: #4a9eff;">${this.quizData.title}</h2>
-      <p style="margin-bottom: 8px; color: #888;">Question ${this.currentQuestion + 1} of ${this.quizData.questions.length}</p>
-      <h3 style="margin-bottom: 16px;">${question.question}</h3>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 style="margin-bottom: 16px; color: #4a9eff; font-family: 'Press Start 2P'; font-size: 18px;">${this.quizData.title}</h2>
+      <p style="margin-bottom: 8px; color: #888; font-family: 'Press Start 2P'; font-size: 10px;">Question ${this.currentQuestion + 1} of ${this.quizData.questions.length}</p>
+      <h3 style="margin-bottom: 20px; font-family: 'Press Start 2P'; font-size: 12px; line-height: 1.6;">${question.question}</h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
     `;
 
     question.options.forEach((option, index) => {
@@ -67,6 +67,9 @@ export class QuizUI {
             color: white;
             cursor: pointer;
             transition: all 0.2s;
+            font-family: 'Press Start 2P'; 
+            font-size: 10px;
+            line-height: 1.4;
           "
         >
           ${option}
