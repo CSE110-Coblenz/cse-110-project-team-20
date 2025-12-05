@@ -31,9 +31,11 @@ export class Keyboard {
   }
 
   private handleKeyDown(event: KeyboardEvent): void {
-
     const target = event.target as HTMLElement;
-    if(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')){
+    if (
+      target &&
+      (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')
+    ) {
       return;
     }
 
@@ -91,4 +93,3 @@ export class Keyboard {
     window.removeEventListener('keyup', this.boundKeyUp);
   }
 }
-

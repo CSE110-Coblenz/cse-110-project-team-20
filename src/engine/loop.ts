@@ -79,4 +79,3 @@ export class GameLoop {
     this.sceneManager.render();
   }
 }
-

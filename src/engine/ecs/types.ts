@@ -31,4 +31,3 @@ export interface World {
   ): void;
   removeEntity(entityId: EntityId): void;
 }
-

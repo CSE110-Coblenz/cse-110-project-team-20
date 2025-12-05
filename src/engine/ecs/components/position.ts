@@ -18,4 +18,3 @@ export function createPosition(x: number, y: number, angle = 0): Position {
     angle,
   };
 }
-

@@ -28,7 +28,9 @@ describe('FuelSystem', () => {
     // Update for 1 second (1000ms)
     fuelSystem.update(1000, world);
 
-    const fuel = world.getComponent<import('../engine/ecs/components/fuel.js').Fuel>(entityId, 'fuel');
+    const fuel = world.getComponent<
+      import('../engine/ecs/components/fuel.js').Fuel
+    >(entityId, 'fuel');
     expect(fuel?.current).toBeLessThan(100);
     expect(fuel?.current).toBeGreaterThan(90); // Should have drained ~10
   });
@@ -40,7 +42,9 @@ describe('FuelSystem', () => {
 
     fuelSystem.update(1000, world);
 
-    const fuel = world.getComponent<import('../engine/ecs/components/fuel.js').Fuel>(entityId, 'fuel');
+    const fuel = world.getComponent<
+      import('../engine/ecs/components/fuel.js').Fuel
+    >(entityId, 'fuel');
     expect(fuel?.current).toBe(100);
   });
 
@@ -59,7 +63,9 @@ describe('FuelSystem', () => {
     }
 
     expect(handler).toHaveBeenCalled();
-    const fuel = world.getComponent<import('../engine/ecs/components/fuel.js').Fuel>(entityId, 'fuel');
+    const fuel = world.getComponent<
+      import('../engine/ecs/components/fuel.js').Fuel
+    >(entityId, 'fuel');
     expect(fuel?.current).toBe(0);
   });
 
@@ -69,7 +75,9 @@ describe('FuelSystem', () => {
 
     fuelSystem.refuel(world, entityId, 30);
 
-    const fuel = world.getComponent<import('../engine/ecs/components/fuel.js').Fuel>(entityId, 'fuel');
+    const fuel = world.getComponent<
+      import('../engine/ecs/components/fuel.js').Fuel
+    >(entityId, 'fuel');
     expect(fuel?.current).toBe(80);
   });
 
@@ -79,7 +87,9 @@ describe('FuelSystem', () => {
 
     fuelSystem.refuel(world, entityId, 50);
 
-    const fuel = world.getComponent<import('../engine/ecs/components/fuel.js').Fuel>(entityId, 'fuel');
+    const fuel = world.getComponent<
+      import('../engine/ecs/components/fuel.js').Fuel
+    >(entityId, 'fuel');
     expect(fuel?.current).toBe(100); // Capped at max
   });
 
@@ -95,4 +105,3 @@ describe('FuelSystem', () => {
     expect(handler).toHaveBeenCalledWith({ amount: 20 });
   });
 });
-

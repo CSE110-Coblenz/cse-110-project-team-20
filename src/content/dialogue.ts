@@ -38,9 +38,13 @@ export class DialogueManager {
   /**
    * Start a dialogue sequence
    */
-  showSequence(sequenceKey: string, onComplete?: () => void, customSequence?: DialogueSequence): void {
+  showSequence(
+    sequenceKey: string,
+    onComplete?: () => void,
+    customSequence?: DialogueSequence
+  ): void {
     let sequence: Dialogue[] | undefined;
-    
+
     if (customSequence && customSequence[sequenceKey]) {
       sequence = customSequence[sequenceKey];
     } else {
@@ -93,7 +97,7 @@ export class DialogueManager {
       this.container.innerHTML = dialogueHTML;
       this.container.style.display = 'flex';
       this.container.onclick = this.handleContinue.bind(this);
-      
+
       // Add keyboard event listener for any key press
       this.setupKeyboardListener();
     }
@@ -120,7 +124,6 @@ export class DialogueManager {
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
     `;
-
 
     document.body.appendChild(this.container);
   }
@@ -184,16 +187,18 @@ export class DialogueManager {
     this.mouthAnimationTimer = window.setInterval(() => {
       if (!this.container) return;
 
-      const imgElement = this.container.querySelector('#neil-character-image') as HTMLImageElement;
+      const imgElement = this.container.querySelector(
+        '#neil-character-image'
+      ) as HTMLImageElement;
       if (imgElement) {
         this.isMouthOpen = !this.isMouthOpen;
         // Switch between mouth open/closed images
         // Ensure consistent sizing by maintaining fixed dimensions
         // Images are always initialized in constructor, so no null check needed
-        const newSrc = this.isMouthOpen 
-          ? this.neilImageMouthOpen.src 
+        const newSrc = this.isMouthOpen
+          ? this.neilImageMouthOpen.src
           : this.neilImageMouthClosed.src;
-        
+
         // Update src while maintaining size constraints
         imgElement.src = newSrc;
         // Ensure size stays consistent
@@ -219,13 +224,13 @@ export class DialogueManager {
    */
   hide(): void {
     this.stopMouthAnimation();
-    
+
     // Remove keyboard listener
     if (this.keyboardHandler) {
       document.removeEventListener('keydown', this.keyboardHandler);
       this.keyboardHandler = null;
     }
-    
+
     if (this.container) {
       this.container.style.display = 'none';
     }
@@ -245,13 +250,13 @@ export class DialogueManager {
    */
   dispose(): void {
     this.stopMouthAnimation();
-    
+
     // Remove keyboard listener
     if (this.keyboardHandler) {
       document.removeEventListener('keydown', this.keyboardHandler);
       this.keyboardHandler = null;
     }
-    
+
     if (this.container && this.container.parentNode) {
       this.container.parentNode.removeChild(this.container);
     }
@@ -260,4 +265,3 @@ export class DialogueManager {
     this.currentIndex = 0;
   }
 }
-

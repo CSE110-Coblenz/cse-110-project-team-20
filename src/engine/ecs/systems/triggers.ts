@@ -1,6 +1,6 @@
 /**
  * Trigger System - AABB collision detection for refuel stations
- * 
+ *
  * SOLID Principle: Single Responsibility - Only handles trigger collisions
  * DRY Principle: Uses shared collision utility instead of duplicating logic
  */
@@ -8,7 +8,10 @@ import type { World } from '../world.js';
 import type { System } from '../types.js';
 import type { Position } from '../components/position.js';
 import type { FuelSystem } from './fuelSystem.js';
-import { checkAABBCollision, createShipBoundingBox } from '../../utils/collision.js';
+import {
+  checkAABBCollision,
+  createShipBoundingBox,
+} from '../../utils/collision.js';
 import { CONFIG } from '../../../config.js';
 
 export interface Trigger {
@@ -49,7 +52,7 @@ export class TriggersSystem implements System {
 
       // Use shared collision utility (DRY principle)
       const shipBox = createShipBoundingBox(position.x, position.y);
-      
+
       for (const trigger of this.triggers) {
         const triggerBox = {
           x: trigger.x,
@@ -57,7 +60,7 @@ export class TriggersSystem implements System {
           width: trigger.width,
           height: trigger.height,
         };
-        
+
         if (checkAABBCollision(shipBox, triggerBox)) {
           // Collision detected
           if (trigger.type === 'refuel') {
@@ -69,4 +72,3 @@ export class TriggersSystem implements System {
     }
   }
 }
-

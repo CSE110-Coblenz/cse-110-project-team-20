@@ -16,4 +16,3 @@ export function createVelocity(vx: number, vy: number): Velocity {
     vy,
   };
 }
-

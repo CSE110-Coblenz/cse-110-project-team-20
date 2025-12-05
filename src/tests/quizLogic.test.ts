@@ -87,4 +87,3 @@ describe('QuizUI', () => {
   // The above tests verify the basic structure; full click simulation would be
   // more complex and require additional setup
 });
-
