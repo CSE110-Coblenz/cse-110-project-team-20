@@ -5,13 +5,14 @@ import {
 } from '../ui/passwordCracker.js';
 import { createEventBus } from '../engine/events.js';
 
-type PasswordCrackerTestHarness = PasswordCracker & {
+// Test harness type that allows access to private members for testing
+interface PasswordCrackerTestHarness {
   handleSubmit: () => void;
   extractPassword: (paragraph: string) => string;
   options: PasswordCrackerOptions | null;
   currentTarget: string;
   inputElement: HTMLInputElement | null;
-};
+}
 
 const getHarness = (instance: PasswordCracker): PasswordCrackerTestHarness =>
   instance as unknown as PasswordCrackerTestHarness;
