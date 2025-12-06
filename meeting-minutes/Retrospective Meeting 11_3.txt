@@ -1,0 +1,21 @@
+What went well
+Splitting up the work i.e. user stories 
+Communication on discord
+Aimed for 2 meetings a week (one in beginning of week, one at end of week)
+
+What could be improved
+Making concrete plans on how to test (need to have things merged)
+Plan how to go about code reviews 
+Making sure to work in increments and then merge (Merge early to avoid having big big conflicts)
+Setting specific tasks or making task list to provide clearer plan for sprints
+Breaking down user stories (2, 3, 4) further into much smaller ones to make them more doable to complete in each sprint
+Communication on files made
+Quality: code reviews, be on same page 
+
+What you will commit to in next sprint
+Making sure to set aside the time to work on 
+Updating each other on work done
+Communication with one another
+Continuing work on user story 1, user story 2, user story 3, user story 4
+Having parts of game to demo by sprint 2
+Need to start merging already 
