@@ -785,6 +785,7 @@ export class PlanetExplorationScene implements Scene {
                   cutsceneId: `${this.planetId}-to-${planet.id}`,
                   sourcePlanet: this.planetId === 'moon' ? 'Moon' : this.planetId.charAt(0).toUpperCase() + this.planetId.slice(1),
                   destinationPlanet: planet.name,
+                  targetScene: planet.sceneId,
                 });
               }, 0);
             }

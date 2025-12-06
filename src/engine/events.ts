@@ -12,6 +12,7 @@ type GameEvents = {
     cutsceneId: string;
     sourcePlanet?: string;
     destinationPlanet?: string;
+    targetScene?: string;
   };
   [EventTopics.CUTSCENE_END]: { cutsceneId: string };
   [EventTopics.FUEL_EMPTY]: void;
