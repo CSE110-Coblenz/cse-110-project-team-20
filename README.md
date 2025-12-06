@@ -1,6 +1,8 @@
 ### Cat Space Agency
 Cat Space Agency is a browser game designated for middle schoolers to teach them about the planets in the solar system. They play as an astronaut that is tasked with exploring the solar system and collecting data. They will have to apply strategic thinking regarding having to refuel their rocket ship and avoiding asteroids. 
+
 ---
+
 ### High-Level Overview
 This project is a TypeScript/Konva browser game built around an ECS (Entity-Component-System) engine and a small scene manager that orchestrates educational space missions, quizzes, and exploration across the solar system.
 
