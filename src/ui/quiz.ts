@@ -7,7 +7,6 @@ import type { EventBus } from '../engine/events.js';
 import { EventTopics } from '../engine/events/topics.js';
 
 export interface QuizQuestion {
-  id?: string;
   question: string;
   options: string[];
   correct: number;
@@ -48,10 +47,10 @@ export class QuizUI {
     }
 
     let html = `
-      <h2 style="margin-bottom: 16px; color: #4a9eff;">${this.quizData.title}</h2>
-      <p style="margin-bottom: 8px; color: #888;">Question ${this.currentQuestion + 1} of ${this.quizData.questions.length}</p>
-      <h3 style="margin-bottom: 16px;">${question.question}</h3>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 style="margin-bottom: 16px; color: #4a9eff; font-family: 'Press Start 2P'; font-size: 18px;">${this.quizData.title}</h2>
+      <p style="margin-bottom: 8px; color: #888; font-family: 'Press Start 2P'; font-size: 10px;">Question ${this.currentQuestion + 1} of ${this.quizData.questions.length}</p>
+      <h3 style="margin-bottom: 20px; font-family: 'Press Start 2P'; font-size: 12px; line-height: 1.6;">${question.question}</h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
     `;
 
     question.options.forEach((option, index) => {
@@ -68,6 +67,9 @@ export class QuizUI {
             color: white;
             cursor: pointer;
             transition: all 0.2s;
+            font-family: 'Press Start 2P'; 
+            font-size: 10px;
+            line-height: 1.4;
           "
         >
           ${option}
@@ -110,11 +112,7 @@ export class QuizUI {
     for (let i = 0; i < this.quizData.questions.length; i++) {
       const selectedAnswer = this.selectedAnswers[i];
       const question = this.quizData.questions[i];
-      if (
-        selectedAnswer !== undefined &&
-        question &&
-        selectedAnswer === question.correct
-      ) {
+      if (selectedAnswer !== undefined && question && selectedAnswer === question.correct) {
         correctCount++;
       }
     }
@@ -122,26 +120,23 @@ export class QuizUI {
     const allCorrect = correctCount === this.quizData.questions.length;
 
     let html = `
-      <h2 style="margin-bottom: 16px;">Quiz Results</h2>
-      <p style="margin-bottom: 16px;">
+      <h2 style="margin-bottom: 16px; font-family: 'Press Start 2P'; ">Quiz Results</h2>
+      <p style="margin-bottom: 16px; font-family: 'Press Start 2P'; ">
         You got ${correctCount} out of ${this.quizData.questions.length} correct.
       </p>
     `;
 
     if (allCorrect) {
-      html +=
-        '<p style="color: #00ff00; margin-bottom: 16px;">Congratulations! You passed!</p>';
+      html += `<p style="color: #00ff00; margin-bottom: 16px; font-family: 'Press Start 2P'; ">Congratulations! You passed!</p>`;
       const closeBtn = createButton('Continue', () => {
         this.dialog.hide();
-        this.eventBus.emit(EventTopics.QUIZ_PASSED, {
-          quizId: this.quizData!.id,
-        });
+        this.eventBus.emit(EventTopics.QUIZ_PASSED, { quizId: this.quizData!.id });
       });
       html = `<div>${html}</div>`;
       this.dialog.show(html);
       this.dialog.content.appendChild(closeBtn);
     } else {
-      html += '<p style="color: #ff0000; margin-bottom: 16px;">Try again!</p>';
+      html += `<p style="color: #ff0000; margin-bottom: 16px; font-family: 'Press Start 2P'; ">Try again!</p>`;
       const retryBtn = createButton('Retry', () => {
         this.currentQuestion = 0;
         this.selectedAnswers = [];
@@ -162,3 +157,4 @@ export class QuizUI {
     this.dialog.dispose();
   }
 }
+
