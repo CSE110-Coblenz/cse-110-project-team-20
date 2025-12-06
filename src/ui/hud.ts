@@ -13,9 +13,9 @@ export class HUD {
       position: fixed;
       top: 20px;
       right: 20px;
-      z-index: 100;
+      z-index: 110;
       color: white;
-      font-family: 'Press Start 2P';
+      font-family: Arial, sans-serif;
     `;
 
     this.fuelText = document.createElement('div');
@@ -24,7 +24,6 @@ export class HUD {
       margin-bottom: 8px;
       font-weight: bold;
       font-size: 14px;
-      font-family: 'Press Start 2P';
     `;
 
     this.fuelBar = document.createElement('div');
@@ -56,8 +55,21 @@ export class HUD {
   updateFuel(current: number, max: number): void {
     const percentage = Math.max(0, Math.min(100, (current / max) * 100));
     this.fuelBarFill.style.width = `${percentage}%`;
-    let fuel_text_cap = Math.max(0, Math.min(100, current))
-    this.fuelText.textContent = `Fuel: ${fuel_text_cap.toFixed(1)}/${max}`;
+    const fuelTextCap = Math.max(0, Math.min(max, current));
+    this.fuelText.textContent = `Fuel: ${fuelTextCap.toFixed(1)}/${max}`;
+  }
+
+  /**
+   * Reattach HUD to DOM if it was disposed and ensure it's visible
+   */
+  show(): void {
+    if (!this.container.parentNode) {
+      document.body.appendChild(this.container);
+    }
+    // Ensure container is visible (in case it was hidden)
+    this.container.style.display = 'block';
+    this.container.style.visibility = 'visible';
+    this.container.style.opacity = '1';
   }
 
   dispose(): void {
@@ -66,4 +78,3 @@ export class HUD {
     }
   }
 }
-

@@ -41,7 +41,6 @@
       "text": "Before you can refuel, you'll need to answer some questions about the ISS. Don't worry - you can try as many times as you need!"
     }
   ],
-  
   "password-hint": [
     {
       "id": "pwd-intro",
@@ -59,15 +58,55 @@
       "text": "Here is a hint: Look for words written in ALL CAPS. Combine them together to form the password!"
     }
   ],
-
-  
   "refuel-success": [
     {
       "id": "quiz-success",
       "character": "Neil",
       "text": "Excellent work! You've successfully refueled. Now you're ready to continue your journey through space."
     }
-
+  ],
+  "moon-exploration-tutorial": [
+    {
+      "id": "moon-welcome",
+      "character": "Neil DePaws Tyson",
+      "text": "Welcome to the Moon exploration zone! Here you'll collect lunar intel and test your knowledge."
+    },
+    {
+      "id": "moon-movement",
+      "character": "Neil DePaws Tyson",
+      "text": "Use WASD or arrow keys to navigate your ship. Watch out for moving asteroids - they'll drain your fuel if you hit them!"
+    },
+    {
+      "id": "moon-data-capsules",
+      "character": "Neil DePaws Tyson",
+      "text": "Look for data capsules scattered around the map. Collect them to learn lunar facts that will help you on the quiz!"
+    },
+    {
+      "id": "moon-quiz-strategy",
+      "character": "Neil DePaws Tyson",
+      "text": "You can take the quiz at the moon icon anytime, but collecting all data capsules first will make it much easier. Without them, you'll face harder questions!"
+    },
+    {
+      "id": "moon-refuel",
+      "character": "Neil DePaws Tyson",
+      "text": "There's a refuel station in the center of the map if you need more fuel. Be careful though - it can only be used once before it disappears, so use it wisely! Good luck, explorer!"
+    }
+  ],
+  "moon-quiz-complete": [
+    {
+      "id": "moon-quiz-congratulations",
+      "character": "Neil DePaws Tyson",
+      "text": "Outstanding work, explorer! You've mastered the Moon and proven you can collect intel and pass the quiz."
+    },
+    {
+      "id": "solar-system-unlock",
+      "character": "Neil DePaws Tyson",
+      "text": "Now that you know how to do it, explore the solar system as you see fit. The further you travel, the more difficult it gets!"
+    },
+    {
+      "id": "planet-selection",
+      "character": "Neil DePaws Tyson",
+      "text": "Choose your next destination from Mercury to Neptune. You can revisit planets you've already explored, except for the ISS tutorial. Ready to continue your journey?"
+    }
   ]
 }
-

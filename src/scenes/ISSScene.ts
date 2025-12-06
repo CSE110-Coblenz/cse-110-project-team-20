@@ -66,6 +66,12 @@ export class ISSScene implements Scene {
   private gameOverUI: GameOverUI;
   private knockbackDisableUntil = 0; // Timestamp when knockback movement disable ends
   private passwordCracker: PasswordCracker;
+
+  // Event handlers so we can unsubscribe on dispose and avoid cross-scene side effects
+  private onQuizPassedHandler!: (payload: { quizId: string }) => void;
+  private onFuelEmptyHandler!: () => void;
+  private onMinigamePassedHandler!: (e: { minigameId: string }) => void;
+  private onFuelRefueledHandler!: () => void;
   constructor(
     sceneManager: SceneManager,
     stage: RenderStage,
@@ -118,7 +124,10 @@ export class ISSScene implements Scene {
       this.refuelStationId,
       createPosition(this.stage.getWidth() - 200, 100)
     );
-    this.world.addComponent(this.refuelStationId, createSprite('refuel-station'));
+    this.world.addComponent(
+      this.refuelStationId,
+      createSprite('refuel-station')
+    );
 
     // Load and display ISS image as the refuel station (replaces orange rectangle)
     this.loadISS();
@@ -127,7 +136,10 @@ export class ISSScene implements Scene {
     const fuelSystem = new FuelSystem(this.eventBus);
     this.triggersSystem = new TriggersSystem(fuelSystem);
     this.obstaclesSystem = new ObstaclesSystem();
-    this.obstaclesSystem.setStageDimensions(this.stage.getWidth(), this.stage.getHeight());
+    this.obstaclesSystem.setStageDimensions(
+      this.stage.getWidth(),
+      this.stage.getHeight()
+    );
     // Set callback for when knockback occurs to disable movement temporarily
     this.obstaclesSystem.setOnKnockbackCallback(() => {
       const KNOCKBACK_DISABLE_MS = 200; // Disable movement for 200ms (0.2 seconds)
@@ -140,18 +152,20 @@ export class ISSScene implements Scene {
       if (!this.shipId) return false;
       const fuel = this.world.getComponent<Fuel>(this.shipId, 'fuel');
       const now = Date.now();
-      return fuel !== null && 
-             fuel !== undefined &&
-             fuel.current > 0 && 
-             this.tutorialCompleted && 
-             !this.dialogueManager.isShowing() && 
-             !this.gameOverUI.isShowing() && 
-             !this.quizUI.isShowing() &&
-             !this.passwordCracker.isShowing()
-             now >= this.knockbackDisableUntil; // Allow movement only after knockback disable period ends
+      return (
+        fuel !== null &&
+        fuel !== undefined &&
+        fuel.current > 0 &&
+        this.tutorialCompleted &&
+        !this.dialogueManager.isShowing() &&
+        !this.gameOverUI.isShowing() &&
+        !this.quizUI.isShowing() &&
+        !this.passwordCracker.isShowing() &&
+        now >= this.knockbackDisableUntil
+      );
     });
     // Trigger will be added/updated in loadISS() after image loads with correct dimensions
-    
+
     // Create obstacles
     this.createObstacles();
 
@@ -160,25 +174,38 @@ export class ISSScene implements Scene {
 
     // Start tutorial with welcome dialogue
     this.startTutorial();
-    
+
     this.stage.backgroundLayer.batchDraw();
     this.stage.uiLayer.batchDraw();
 
-    // Listen for quiz completion
-    this.eventBus.on(EventTopics.QUIZ_PASSED, () => {
+    // --- Register event handlers (and store references so we can unsubscribe on dispose) ---
+
+    // Listen for quiz completion (ISS refuel quiz -> cutscene to Moon)
+    this.onQuizPassedHandler = () => {
       // Show success message after refueling and passing quiz
       this.dialogueManager.showSequence('refuel-success', () => {
-        this.eventBus.emit(EventTopics.CUTSCENE_START, { cutsceneId: 'iss-to-moon' });
+        // First transition to cutscene so it can subscribe to CUTSCENE_START
         this.sceneManager.transitionTo('cutscene');
+        // Then emit the event on the next tick so the cutscene sees it
+        setTimeout(() => {
+          this.eventBus.emit(EventTopics.CUTSCENE_START, {
+            cutsceneId: 'iss-to-moon',
+            sourcePlanet: 'ISS',
+            destinationPlanet: 'Moon',
+          });
+        }, 0);
       });
-    });
+    };
+    this.eventBus.on(EventTopics.QUIZ_PASSED, this.onQuizPassedHandler);
 
-
-    // Listen for fuel empty
-    this.eventBus.on(EventTopics.FUEL_EMPTY, () => {
+    // Listen for fuel empty (ISS only)
+    this.onFuelEmptyHandler = () => {
       // Stop movement when fuel is empty
       if (this.shipId) {
-        const velocity = this.world.getComponent<Velocity>(this.shipId, 'velocity');
+        const velocity = this.world.getComponent<Velocity>(
+          this.shipId,
+          'velocity'
+        );
         if (velocity) {
           velocity.vx = 0;
           velocity.vy = 0;
@@ -186,25 +213,25 @@ export class ISSScene implements Scene {
       }
       // Show fuel empty dialog
       this.showFuelEmptyDialog();
-    });
+    };
+    this.eventBus.on(EventTopics.FUEL_EMPTY, this.onFuelEmptyHandler);
 
     // Listen for refuel - show quiz after successful refuel (the puzzle)
     // Note: This will be changed in Phase 5 to show quiz BEFORE refueling
-    this.eventBus.on('minigame:passed', (e) => {
-      if(e.minigameId === 'iss-refuel-puzzle'){
-        this.showQuiz()
+    this.onMinigamePassedHandler = (e: { minigameId: string }) => {
+      if (e.minigameId === 'iss-refuel-puzzle') {
+        this.showQuiz();
       }
-    });
+    };
+    this.eventBus.on('minigame:passed', this.onMinigamePassedHandler);
 
-
-    this.eventBus.on(EventTopics.FUEL_REFUELED, () => {
+    this.onFuelRefueledHandler = () => {
       if (!this.quizShown) {
-        this.dialogueManager.showSequence('password-hint', () => {
-          this.showPasswordGame();
-        });
+        this.showPasswordGame();
         this.quizShown = true;
       }
-    });
+    };
+    this.eventBus.on(EventTopics.FUEL_REFUELED, this.onFuelRefueledHandler);
   }
 
   /**
@@ -215,14 +242,18 @@ export class ISSScene implements Scene {
     // Get player name and customize first dialogue
     const playerName = this.saveRepository.getPlayerName() || 'Explorer';
     const customizedDialogue = this.getCustomizedDialogue(playerName);
-    
+
     // Show welcome dialogue
-    this.dialogueManager.showSequence('iss-tutorial', () => {
-      this.tutorialStep = 1; // Tutorial dialogue completed
-      // tutorialStep will be used in Phase 4 for progressive tutorial steps
-      void this.tutorialStep; // Suppress unused warning - will be used later
-      this.onTutorialStepComplete();
-    }, customizedDialogue);
+    this.dialogueManager.showSequence(
+      'iss-tutorial',
+      () => {
+        this.tutorialStep = 1; // Tutorial dialogue completed
+        // tutorialStep will be used in Phase 4 for progressive tutorial steps
+        void this.tutorialStep; // Suppress unused warning - will be used later
+        this.onTutorialStepComplete();
+      },
+      customizedDialogue
+    );
   }
 
   /**
@@ -231,23 +262,23 @@ export class ISSScene implements Scene {
   private getCustomizedDialogue(playerName: string): DialogueSequence {
     const sequences = dialogueDataJson as DialogueSequence;
     const tutorialSequence = sequences['iss-tutorial'];
-    
+
     if (!tutorialSequence) {
       return { 'iss-tutorial': [] };
     }
-    
+
     // Clone the sequence and customize the first dialogue
     const customized = [...tutorialSequence];
     const firstDialogue = customized[0];
     if (firstDialogue) {
       customized[0] = {
         ...firstDialogue,
-        text: `Hello ${playerName}! My name is Neil DePaws Tyson, and I'll be your guide on this journey. Welcome to the International Space Station tutorial!`
+        text: `Hello ${playerName}! My name is Neil DePaws Tyson, and I'll be your guide on this journey. Welcome to the International Space Station tutorial!`,
       };
     }
-    
+
     return {
-      'iss-tutorial': customized
+      'iss-tutorial': customized,
     };
   }
 
@@ -263,11 +294,11 @@ export class ISSScene implements Scene {
       const stationY = 100;
       const stationWidth = 180;
       const stationHeight = 120;
-      
+
       // Calculate aspect ratio to maintain image proportions
       let width = stationWidth;
       let height = stationHeight;
-      
+
       if (issImg.width && issImg.height) {
         const aspectRatio = issImg.width / issImg.height;
         if (aspectRatio > stationWidth / stationHeight) {
@@ -291,10 +322,10 @@ export class ISSScene implements Scene {
       // Add ISS label below the image
       const issLabel = new Konva.Text({
         text: 'ISS',
-        x: stationX + 10,
-        y: stationY + height / 2,
-        fontSize: 20,
-        fontFamily: 'Press Start 2P',
+        x: stationX,
+        y: stationY + height / 2 + 10,
+        fontSize: 24,
+        fontFamily: 'Arial',
         fill: '#ffffff',
         fontWeight: 'bold',
         align: 'center',
@@ -304,14 +335,15 @@ export class ISSScene implements Scene {
       // Add to background layer
       this.stage.backgroundLayer.add(this.issImage);
       this.stage.backgroundLayer.add(issLabel);
-      
+
       // Update trigger collision box to match ISS image size
       // The trigger system is initialized, so we can add/update the trigger
       // Remove existing trigger if it exists, then add new one with correct dimensions
       try {
         this.triggersSystem.removeTrigger('refuel-1');
-      } catch (e) {
+      } catch (error) {
         // Trigger might not exist yet, that's okay
+        void error;
       }
       this.triggersSystem.addTrigger({
         id: 'refuel-1',
@@ -321,7 +353,7 @@ export class ISSScene implements Scene {
         height: height,
         type: 'refuel',
       });
-      
+
       this.stage.backgroundLayer.batchDraw();
     };
     issImg.onerror = () => {
@@ -357,25 +389,28 @@ export class ISSScene implements Scene {
 
     obstacles.forEach((obstacle, index) => {
       const obstacleId = `obstacle-${index}`;
-      
+
       // Create ECS entity for asteroid
       const asteroidEntityId = this.world.createEntity();
       this.asteroidEntities.set(obstacleId, asteroidEntityId);
-      
+
       // Add components to entity (no velocity = stationary)
-      this.world.addComponent(asteroidEntityId, createPosition(obstacle.x, obstacle.y));
+      this.world.addComponent(
+        asteroidEntityId,
+        createPosition(obstacle.x, obstacle.y)
+      );
       this.world.addComponent(asteroidEntityId, createSprite('asteroid'));
-      
+
       // Calculate hitbox - use obstacle size with shrink factor
       // For circles, we'll use the smaller dimension as diameter
       const hitboxSize = Math.min(obstacle.width, obstacle.height);
       const hitboxWidth = hitboxSize * CONFIG.ASTEROID_HITBOX_SHRINK;
       const hitboxHeight = hitboxSize * CONFIG.ASTEROID_HITBOX_SHRINK;
-      
+
       // Center the hitbox within the obstacle area
       const hitboxOffsetX = (obstacle.width - hitboxWidth) / 2;
       const hitboxOffsetY = (obstacle.height - hitboxHeight) / 2;
-      
+
       // Add obstacle to system
       this.obstaclesSystem.addObstacle({
         id: obstacleId,
@@ -386,20 +421,20 @@ export class ISSScene implements Scene {
         offsetX: hitboxOffsetX,
         offsetY: hitboxOffsetY,
       });
-      
+
       // Calculate collision center (what collision detection uses)
       const asteroidInfo = this.obstaclesSystem.calculateAsteroidCenter(
         { x: obstacle.x, y: obstacle.y },
         this.obstaclesSystem.getObstacle(obstacleId)!
       );
-      
+
       // Load asteroid image
       const asteroidImg = new Image();
       asteroidImg.onload = () => {
         // Calculate image dimensions maintaining aspect ratio
         let imageWidth = obstacle.width;
         let imageHeight = obstacle.height;
-        
+
         if (asteroidImg.width && asteroidImg.height) {
           const aspectRatio = asteroidImg.width / asteroidImg.height;
           if (aspectRatio > 1) {
@@ -410,7 +445,7 @@ export class ISSScene implements Scene {
             imageWidth = imageHeight * aspectRatio;
           }
         }
-        
+
         // Position image so its center matches collision center
         // Image top-left = collision center - imageSize/2
         const asteroidNode = new Konva.Image({
@@ -421,14 +456,13 @@ export class ISSScene implements Scene {
           height: imageHeight,
           opacity: 0.9,
         });
-        
+
         this.asteroidNodes.set(obstacleId, asteroidNode);
         this.stage.backgroundLayer.add(asteroidNode);
         this.stage.backgroundLayer.batchDraw();
       };
-      
+
       asteroidImg.onerror = () => {
-        console.error('Failed to load asteroid image:', '/asteroid-obstacle.png');
         // Fallback to circle
         const asteroidCircle = new Konva.Circle({
           x: asteroidInfo.x,
@@ -442,10 +476,10 @@ export class ISSScene implements Scene {
         this.asteroidNodes.set(obstacleId, asteroidCircle);
         this.stage.backgroundLayer.add(asteroidCircle);
       };
-      
+
       asteroidImg.src = '/asteroid-obstacle.png';
     });
-    
+
     this.stage.backgroundLayer.batchDraw();
   }
 
@@ -464,7 +498,8 @@ export class ISSScene implements Scene {
   private showFuelEmptyDialog(): void {
     this.gameOverUI.show({
       title: 'Oh no! Out of fuel',
-      message: 'Your spacecraft has run out of fuel. Don\'t worry, you can restart and try again!',
+      message:
+        "Your spacecraft has run out of fuel. Don't worry, you can restart and try again!",
       buttonText: 'Restart',
       onRestart: () => {
         this.restartTutorial();
@@ -481,14 +516,20 @@ export class ISSScene implements Scene {
 
     // Reset ship position to start
     if (this.shipId) {
-      const position = this.world.getComponent<Position>(this.shipId, 'position');
+      const position = this.world.getComponent<Position>(
+        this.shipId,
+        'position'
+      );
       if (position) {
         position.x = 100;
         position.y = this.stage.getHeight() - 150;
       }
 
       // Reset velocity
-      const velocity = this.world.getComponent<Velocity>(this.shipId, 'velocity');
+      const velocity = this.world.getComponent<Velocity>(
+        this.shipId,
+        'velocity'
+      );
       if (velocity) {
         velocity.vx = 0;
         velocity.vy = 0;
@@ -520,10 +561,9 @@ export class ISSScene implements Scene {
   update(dt: number): void {
     // Update obstacles system (check collisions)
     this.obstaclesSystem.update(dt, this.world);
-    
+
     // Update triggers system (check refuel station)
     this.triggersSystem.update(dt, this.world);
-
 
     // Update player input (RotationSystem is handled by the game loop automatically)
     if (this.playerInputSystem) {
@@ -538,13 +578,16 @@ export class ISSScene implements Scene {
     for (const [obstacleId, entityId] of this.asteroidEntities.entries()) {
       const position = this.world.getComponent<Position>(entityId, 'position');
       const asteroidNode = this.asteroidNodes.get(obstacleId);
-      
+
       if (position && asteroidNode) {
         const obstacle = this.obstaclesSystem.getObstacle(obstacleId);
         if (obstacle) {
           // Calculate collision center (same as collision detection)
-          const asteroidInfo = this.obstaclesSystem.calculateAsteroidCenter(position, obstacle);
-          
+          const asteroidInfo = this.obstaclesSystem.calculateAsteroidCenter(
+            position,
+            obstacle
+          );
+
           if (asteroidNode instanceof Konva.Circle) {
             // Fallback circle - center matches collision center
             asteroidNode.x(asteroidInfo.x);
@@ -571,13 +614,11 @@ export class ISSScene implements Scene {
     }
   }
 
-
-
   private showPasswordGame(): void {
     this.passwordCracker.show({
       id: 'iss-refuel-puzzle',
       title: 'ISS Refuel System',
-      puzzleSetKey:'iss'
+      puzzleSetKey: 'iss',
     });
   }
 
@@ -595,10 +636,22 @@ export class ISSScene implements Scene {
   }
 
   dispose(): void {
+    // Unsubscribe from all event bus listeners registered in init()
+    this.eventBus.off(EventTopics.QUIZ_PASSED, this.onQuizPassedHandler);
+    this.eventBus.off(EventTopics.FUEL_EMPTY, this.onFuelEmptyHandler);
+    this.eventBus.off('minigame:passed', this.onMinigamePassedHandler as unknown as (...args: unknown[]) => void);
+    this.eventBus.off(EventTopics.FUEL_REFUELED, this.onFuelRefueledHandler);
+
     this.keyboard.dispose();
     this.quizUI.dispose();
     this.hud.dispose();
     this.dialogueManager.dispose();
+    // Hide and dispose password cracker to prevent it from appearing in other scenes
+    if (this.passwordCracker.isShowing()) {
+      this.passwordCracker.dispose();
+    } else {
+      this.passwordCracker.dispose();
+    }
     // Hide gameOverUI if showing (don't dispose - it's shared across scenes)
     if (this.gameOverUI.isShowing()) {
       this.gameOverUI.hide();
@@ -609,7 +662,7 @@ export class ISSScene implements Scene {
     }
     this.asteroidEntities.clear();
     this.asteroidNodes.clear();
-    
+
     if (this.shipId) {
       this.world.removeEntity(this.shipId);
     }
@@ -622,4 +675,3 @@ export class ISSScene implements Scene {
     this.issImage = null;
   }
 }
-

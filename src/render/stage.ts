@@ -48,4 +48,3 @@ export class RenderStage {
     return this.stage.height();
   }
 }
-

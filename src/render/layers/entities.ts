@@ -1,6 +1,6 @@
 /**
  * Entities layer - renders game entities from ECS world
- * 
+ *
  * SOLID Principle: Single Responsibility - Only handles entity rendering
  * DRY Principle: Uses config constants for ship dimensions
  */
@@ -63,11 +63,12 @@ export class EntitiesLayer {
       if (!sprite || !position) continue;
 
       // Skip refuel-station and asteroid entities - they're rendered as images instead of rectangles
-      if (sprite.key === 'refuel-station' || sprite.key === 'asteroid') continue;
+      if (sprite.key === 'refuel-station' || sprite.key === 'asteroid')
+        continue;
 
       // Create Konva node - use group with circle for ship, rectangle for others
       let node: Konva.Rect | Konva.Image | Konva.Circle | Konva.Group;
-      
+
       if (sprite.key === 'ship') {
         // Position component stores top-left corner
         // Collision detection uses center: (position.x + width/2, position.y + height/2)
@@ -75,7 +76,7 @@ export class EntitiesLayer {
         const shipCenterX = position.x + CONFIG.SHIP_WIDTH / 2;
         const shipCenterY = position.y + CONFIG.SHIP_HEIGHT / 2;
         const shipRadius = Math.max(CONFIG.SHIP_WIDTH, CONFIG.SHIP_HEIGHT) / 2;
-        
+
         // Create a group positioned at collision center
         // This ensures visual position matches collision position exactly
         const shipGroup = new Konva.Group({
@@ -84,7 +85,7 @@ export class EntitiesLayer {
           rotation: position.angle || 0,
           // No offsetX/offsetY - group position IS the center
         });
-        
+
         // Create circle at group center (0, 0 relative to group)
         const collisionCircle = new Konva.Circle({
           x: 0, // Center of group
@@ -96,13 +97,13 @@ export class EntitiesLayer {
           opacity: 0.9,
         });
         shipGroup.add(collisionCircle);
-        
+
         // If image is loaded, make circle invisible and add image on top
         const shipImage = this.imageCache.get('ship');
         if (shipImage && shipImage.complete && shipImage.naturalWidth > 0) {
           // Hide the circle (collision still uses it, but visually invisible)
           collisionCircle.opacity(0);
-          
+
           // Add image centered on group (which is at collision center)
           const shipImageNode = new Konva.Image({
             x: -CONFIG.SHIP_WIDTH / 2, // Top-left relative to center
@@ -114,7 +115,7 @@ export class EntitiesLayer {
           });
           shipGroup.add(shipImageNode);
         }
-        
+
         node = shipGroup;
       } else {
         // Default rectangle for other entities
@@ -150,21 +151,25 @@ export class EntitiesLayer {
         drawable.node.x(shipCenterX);
         drawable.node.y(shipCenterY);
         drawable.node.rotation(position.angle || 0);
-        
+
         // Update image if it finished loading after initial creation
         const shipImage = this.imageCache.get('ship');
         if (shipImage && shipImage.complete && shipImage.naturalWidth > 0) {
           const children = drawable.node.getChildren();
-          const circle = children.find(child => child instanceof Konva.Circle) as Konva.Circle | undefined;
-          const imageNode = children.find(child => child instanceof Konva.Image) as Konva.Image | undefined;
-          
+          const circle = children.find(
+            (child) => child instanceof Konva.Circle
+          ) as Konva.Circle | undefined;
+          const imageNode = children.find(
+            (child) => child instanceof Konva.Image
+          ) as Konva.Image | undefined;
+
           // Make circle invisible if image is loaded
           if (circle && circle.opacity() > 0) {
             circle.opacity(0);
             circle.fill('transparent');
             circle.stroke('transparent');
           }
-          
+
           // Add image if not already added
           if (!imageNode) {
             const shipCenterOffsetX = CONFIG.SHIP_WIDTH / 2;
@@ -218,4 +223,3 @@ export class EntitiesLayer {
     // Batch draw handled by stage
   }
 }
-

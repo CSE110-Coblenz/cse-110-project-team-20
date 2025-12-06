@@ -22,7 +22,7 @@ export class GameOverUI {
 
     this.dialog = new Dialog();
     const buttonText = options.buttonText || 'Start Over';
-    
+
     const dialogHTML = `
       <div style="text-align: center; padding: 20px;">
         <h2 style="color: #ff4444; margin: 0 0 16px 0; font-size: 28px;">${options.title}</h2>
@@ -81,4 +81,3 @@ export class GameOverUI {
     this.hide();
   }
 }
-

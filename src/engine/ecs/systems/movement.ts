@@ -23,4 +23,3 @@ export class MovementSystem implements System {
     });
   }
 }
-

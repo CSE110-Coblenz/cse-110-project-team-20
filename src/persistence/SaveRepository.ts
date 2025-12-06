@@ -10,10 +10,31 @@ export interface SaveData {
   tutorialDone?: boolean;
   explorationUnlocked?: boolean;
   quizResults?: Record<string, boolean>;
+  visitedPlanets?: string[]; // Array of planet IDs that have been visited
+  moonExplorationTutorialShown?: boolean; // Whether moon exploration tutorial has been shown
 }
 
 const CURRENT_VERSION = 'mvp-1';
 const STORAGE_KEY = 'space-game-save';
+
+type ErrorTracker = {
+  captureException: (
+    error: unknown,
+    context?: { extra?: Record<string, unknown> }
+  ) => void;
+};
+
+const reportPersistenceError = (operation: string, error: unknown): void => {
+  console.error(`[SaveRepository] ${operation} failed`, error);
+  const sentry = (globalThis as typeof globalThis & { Sentry?: ErrorTracker })
+    .Sentry;
+  sentry?.captureException(error, {
+    extra: {
+      operation,
+      storageKey: STORAGE_KEY,
+    },
+  });
+};
 
 export class SaveRepository {
   private eventBus: EventBus;
@@ -39,6 +60,7 @@ export class SaveRepository {
 
       return data;
     } catch (error) {
+      reportPersistenceError('read', error);
       return { version: CURRENT_VERSION };
     }
   }
@@ -55,7 +77,7 @@ export class SaveRepository {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       this.eventBus.emit(EventTopics.SAVE_UPDATED);
     } catch (error) {
-      // Failed to save data
+      reportPersistenceError('write', error);
     }
   }
 
@@ -69,7 +91,7 @@ export class SaveRepository {
       localStorage.removeItem(STORAGE_KEY);
       this.eventBus.emit(EventTopics.SAVE_UPDATED);
     } catch (error) {
-      // Failed to clear save data
+      reportPersistenceError('clear', error);
     }
   }
 
@@ -103,5 +125,33 @@ export class SaveRepository {
     quizResults[quizId] = passed;
     this.merge({ quizResults });
   }
-}
 
+  getVisitedPlanets(): string[] {
+    return this.get().visitedPlanets || [];
+  }
+
+  addVisitedPlanet(planetId: string): void {
+    const current = this.get();
+    const visitedPlanets = current.visitedPlanets || [];
+    if (!visitedPlanets.includes(planetId)) {
+      visitedPlanets.push(planetId);
+      this.merge({ visitedPlanets });
+    }
+  }
+
+  hasVisitedPlanet(planetId: string): boolean {
+    return this.getVisitedPlanets().includes(planetId);
+  }
+
+  getQuizResult(quizId: string): boolean | undefined {
+    return this.get().quizResults?.[quizId];
+  }
+
+  isMoonExplorationTutorialShown(): boolean {
+    return this.get().moonExplorationTutorialShown ?? false;
+  }
+
+  setMoonExplorationTutorialShown(shown: boolean): void {
+    this.merge({ moonExplorationTutorialShown: shown });
+  }
+}

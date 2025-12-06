@@ -8,9 +8,10 @@ export const EventTopics = {
   CUTSCENE_END: 'cutscene:end',
   FUEL_EMPTY: 'fuel:empty',
   FUEL_REFUELED: 'fuel:refueled',
+  DATA_CAPSULE_COLLECTED: 'data-capsule:collected',
+  DATA_CAPSULES_COMPLETE: 'data-capsule:complete',
   SAVE_UPDATED: 'save:updated',
   SCENE_TRANSITION: 'scene:transition',
 } as const;
 
-export type EventTopic = typeof EventTopics[keyof typeof EventTopics];
-
+export type EventTopic = (typeof EventTopics)[keyof typeof EventTopics];

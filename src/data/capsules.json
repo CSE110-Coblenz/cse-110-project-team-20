@@ -1,0 +1,77 @@
+{
+    "moon": [
+      {
+        "id": "tranquility-capsule",
+        "x": 260,
+        "y": 180,
+        "width": 72,
+        "height": 72,
+        "facts": [
+          { "id": "tranquility-apollo-landing", "text": "The Sea of Tranquility (Mare Tranquillitatis) was the landing site for Apollo 11, where Neil Armstrong and Buzz Aldrin became the first humans to walk on the Moon on July 20, 1969.", "questionId": "moon-landing-site" },
+          { "id": "tranquility-landing-site", "text": "Apollo 11's historic landing occurred in the Sea of Tranquility, chosen for its flat terrain and safe landing conditions.", "questionId": "moon-landing-site" }
+        ]
+      },
+      {
+        "id": "tycho-capsule",
+        "x": 520,
+        "y": 360,
+        "width": 72,
+        "height": 72,
+        "facts": [
+          { "id": "tycho-ray-system", "text": "Tycho Crater stands out when viewing the Moon from Earth because its bright radial rays streak across the lunar surface, created by impact ejecta that was thrown outward during the crater's formation.", "questionId": "tycho-radial-rays" },
+          { "id": "tycho-visible-rays", "text": "The bright rays extending from Tycho Crater are so prominent and visible from Earth that they make Tycho one of the most recognizable features on the Moon.", "questionId": "tycho-radial-rays" }
+        ]
+      },
+      {
+        "id": "copernicus-capsule",
+        "x": 900,
+        "y": 220,
+        "width": 72,
+        "height": 72,
+        "facts": [
+          { "id": "copernicus-complex-structure", "text": "Copernicus Crater is a textbook example of a complex crater because it features terraced walls and towering central peaks that rise approximately 800 meters high.", "questionId": "copernicus-structure" },
+          { "id": "copernicus-terraced-peaks", "text": "What makes Copernicus a complex crater is its distinctive terraced inner walls and prominent central peaks, both formed during the massive impact event that created the crater.", "questionId": "copernicus-structure" }
+        ]
+      }
+    ],
+    "mercury": [
+      { "id": "mercury-day-night", "x": 260, "y": 180, "width": 72, "height": 72, "facts": [{ "id": "mercury-slow-rotation", "text": "Mercury rotates so slowly that a single day (sunrise to sunrise) lasts about 176 Earth days.", "questionId": "mercury-day-length" }] },
+      { "id": "mercury-atmosphere", "x": 520, "y": 360, "width": 72, "height": 72, "facts": [{ "id": "mercury-thin-exosphere", "text": "Mercury has an extremely thin exosphere instead of a thick atmosphere, so it cannot trap heat.", "questionId": "mercury-atmosphere" }] },
+      { "id": "mercury-temperature", "x": 900, "y": 220, "width": 72, "height": 72, "facts": [{ "id": "mercury-temp-variation", "text": "Because Mercury has almost no atmosphere, its surface temperature swings from scorching hot in the day to freezing at night.", "questionId": "mercury-temp-variation" }] }
+    ],
+    "earth": [
+      { "id": "earth-water", "x": 260, "y": 180, "width": 72, "height": 72, "facts": [{ "id": "earth-liquid-water", "text": "Earth is the only known planet with stable liquid water on its surface, covering about 71% of the planet.", "questionId": "earth-liquid-water" }] },
+      { "id": "earth-atmosphere", "x": 520, "y": 360, "width": 72, "height": 72, "facts": [{ "id": "earth-atmosphere-protection", "text": "Earth’s atmosphere shields life from harmful solar radiation and helps keep temperatures stable.", "questionId": "earth-atmosphere-role" }] },
+      { "id": "earth-moon-tides", "x": 900, "y": 220, "width": 72, "height": 72, "facts": [{ "id": "earth-moon-tides-fact", "text": "The gravitational pull of the Moon causes ocean tides on Earth, helping to shape coastal ecosystems.", "questionId": "earth-moon-tides" }] }
+    ],
+    "venus": [
+      { "id": "venus-greenhouse", "x": 260, "y": 180, "width": 72, "height": 72, "facts": [{ "id": "venus-runaway-greenhouse", "text": "Venus experiences a runaway greenhouse effect, making it even hotter than Mercury despite being farther from the Sun.", "questionId": "venus-hottest-planet" }] },
+      { "id": "venus-atmosphere", "x": 520, "y": 360, "width": 72, "height": 72, "facts": [{ "id": "venus-thick-atmosphere", "text": "Venus has a thick atmosphere made mostly of carbon dioxide with clouds of sulfuric acid.", "questionId": "venus-atmosphere" }] },
+      { "id": "venus-rotation", "x": 900, "y": 220, "width": 72, "height": 72, "facts": [{ "id": "venus-retrograde-rotation", "text": "Venus rotates in the opposite direction of most planets, so the Sun appears to rise in the west and set in the east.", "questionId": "venus-rotation" }] }
+    ],
+    "mars": [
+      { "id": "mars-olympus-mons", "x": 260, "y": 180, "width": 72, "height": 72, "facts": [{ "id": "mars-volcano", "text": "Mars is home to Olympus Mons, the largest volcano in the solar system, standing about three times taller than Mount Everest.", "questionId": "mars-olympus-mons" }] },
+      { "id": "mars-water-ice", "x": 520, "y": 360, "width": 72, "height": 72, "facts": [{ "id": "mars-polar-ice", "text": "Mars has polar ice caps made of water ice and frozen carbon dioxide, suggesting it once had a wetter climate.", "questionId": "mars-water-evidence" }] },
+      { "id": "mars-thin-atmosphere", "x": 900, "y": 220, "width": 72, "height": 72, "facts": [{ "id": "mars-atmosphere", "text": "Mars has a thin atmosphere that cannot hold much heat, so surface temperatures can change dramatically between day and night.", "questionId": "mars-atmosphere" }] }
+    ],
+    "jupiter": [
+      { "id": "jupiter-size", "x": 260, "y": 180, "width": 72, "height": 72, "facts": [{ "id": "jupiter-largest-planet", "text": "Jupiter is the largest planet in the solar system and is more than 11 times wider than Earth.", "questionId": "jupiter-largest-planet" }] },
+      { "id": "jupiter-great-red-spot", "x": 520, "y": 360, "width": 72, "height": 72, "facts": [{ "id": "jupiter-red-spot", "text": "Jupiter’s Great Red Spot is a giant storm that has been raging for at least 300 years.", "questionId": "jupiter-great-red-spot" }] },
+      { "id": "jupiter-many-moons", "x": 900, "y": 220, "width": 72, "height": 72, "facts": [{ "id": "jupiter-moons", "text": "Jupiter has dozens of moons, including the four large Galilean moons discovered by Galileo.", "questionId": "jupiter-moons" }] }
+    ],
+    "saturn": [
+      { "id": "saturn-rings", "x": 260, "y": 180, "width": 72, "height": 72, "facts": [{ "id": "saturn-ring-composition", "text": "Saturn’s rings are made mostly of countless chunks of ice and rock, ranging from tiny grains to house-sized boulders.", "questionId": "saturn-rings" }] },
+      { "id": "saturn-density", "x": 520, "y": 360, "width": 72, "height": 72, "facts": [{ "id": "saturn-density-fact", "text": "Saturn is so light for its size that it would float in a giant bathtub of water, because its average density is less than water’s.", "questionId": "saturn-density" }] },
+      { "id": "saturn-moon-titan", "x": 900, "y": 220, "width": 72, "height": 72, "facts": [{ "id": "saturn-titan", "text": "Saturn’s moon Titan has a thick atmosphere and lakes of liquid methane and ethane on its surface.", "questionId": "saturn-titan" }] }
+    ],
+    "uranus": [
+      { "id": "uranus-tilt", "x": 260, "y": 180, "width": 72, "height": 72, "facts": [{ "id": "uranus-axis-tilt", "text": "Uranus rotates on its side with an axial tilt of about 98 degrees, so it essentially rolls around the Sun.", "questionId": "uranus-tilt" }] },
+      { "id": "uranus-ice-giant", "x": 520, "y": 360, "width": 72, "height": 72, "facts": [{ "id": "uranus-composition", "text": "Uranus is an ice giant, with a composition rich in icy materials like water, ammonia, and methane.", "questionId": "uranus-ice-giant" }] },
+      { "id": "uranus-cold", "x": 900, "y": 220, "width": 72, "height": 72, "facts": [{ "id": "uranus-temperature", "text": "Despite not being the farthest planet, Uranus is one of the coldest planets due to the way it releases little internal heat.", "questionId": "uranus-temperature" }] }
+    ],
+    "neptune": [
+      { "id": "neptune-winds", "x": 260, "y": 180, "width": 72, "height": 72, "facts": [{ "id": "neptune-wind-speed", "text": "Neptune has the fastest winds in the solar system, with speeds that can exceed 2,000 kilometers per hour.", "questionId": "neptune-winds" }] },
+      { "id": "neptune-dark-spot", "x": 520, "y": 360, "width": 72, "height": 72, "facts": [{ "id": "neptune-storms", "text": "Like Jupiter’s Great Red Spot, Neptune has dark storm systems that appear and disappear over time.", "questionId": "neptune-storms" }] },
+      { "id": "neptune-distance", "x": 900, "y": 220, "width": 72, "height": 72, "facts": [{ "id": "neptune-farthest", "text": "Neptune is the farthest known planet from the Sun, taking about 165 Earth years to complete one orbit.", "questionId": "neptune-orbit" }] }
+    ]
+  }

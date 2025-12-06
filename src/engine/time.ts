@@ -9,4 +9,3 @@ export function now(): number {
 export function elapsed(start: number, end: number): number {
   return end - start;
 }
-

@@ -16,4 +16,3 @@ export function createFuel(max: number, current?: number): Fuel {
     max,
   };
 }
-
