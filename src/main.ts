@@ -58,7 +58,7 @@ function init(): void {
   );
   sceneManager.register(
     'cutscene',
-    () => new CutsceneScene(sceneManager, stage, saveRepository, gameOverUI, eventBus)
+    () => new CutsceneScene(sceneManager, stage, saveRepository, gameOverUI)
   );
   sceneManager.register(
     'moon',
