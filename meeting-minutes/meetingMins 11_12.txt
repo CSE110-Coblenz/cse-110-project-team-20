@@ -1,0 +1,53 @@
+﻿Date: 11/12/2025
+Location: Online
+Attendees: Kinish, Emily, Joseph, Anurag, Keanu
+Minute taker: Keanu
+Sprint 2
+Agenda
+backlog refinement, radjusting user story and talking about the new structure, game development
+
+
+Tasks + Role
+Anurag
+Role: Backend
+US: 4
+Implement quiz questions to ask user about facts about the moon (4 hours) (Anurag)
+
+
+Emily
+Role: Frontend
+US: 4
+
+
+Write unit tests to ensure quiz computes correct and incorrect answers and lets user retry (3 hours) (Emily)
+
+
+
+
+Akshar
+Role: Frontend, helpint out Kinish with user story 2 as well
+US: 4
+
+
+Keanu
+Role: 
+US: 4
+Implement cutscene from ISS to Moon (2 hours) ()
+
+
+Kinish
+Role: Backend
+US: 4
+
+
+Joseph
+Role: Frontend, back end and testing for user story 3
+US: 4
+
+
+
+
+
+
+Discussion
+Broke down one user story into 5 tasks. Having a bigger group work on one user story may help us increase our velocity. Hoping to get through user stories faster at this rate

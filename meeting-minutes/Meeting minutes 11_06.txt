@@ -1,0 +1,61 @@
+﻿Standup
+* What have you been working on?
+* Anything you will be working on?
+* Challenges
+Akshar
+* Current Focus: Collaborating with Kinish on User Story 2 (Core Gameplay Loop).
+* Progress:
+   * Successfully mapped out the logic flow for the game mechanics.
+   * Currently integrating the backend logic with the frontend components.
+* Plan:
+   * Finalize the primary game loop logic.
+   * Aiming to have US 2 marked as "Code Complete" before the sprint deadline on Friday.
+* Blockers: None currently reported.
+Emily
+* Current Focus: User Story 1 (Title Screen UI & Assets).
+* Progress:
+   * Researched and selected a retro-style typography font via Canva; verified licensing for use.
+   * Created the initial sprite draft for the "Pixelated Earth" background asset.
+* Challenges:
+   * Feels the current earth asset lacks depth/polish (appears "amateurish").
+* Plan:
+   * Iterate on the pixel art design to add shading and rotation frames.
+   * Implement the selected font into the CSS/Tailwind configuration.
+Joseph
+* Current Focus: User Story 3 (ISS Module & Quiz Logic).
+* Progress:
+   * Drafted the data structure for the International Space Station (ISS) educational quiz.
+   * New Feature Proposal: Conceptualized a "Password Mastery" summary screen to display learned credentials/achievements at the end of the level.
+* Challenges:
+   * Blocker: Encountering dependency conflicts with npm and package.json (version mismatches preventing local build).
+* Plan:
+   * Troubleshoot node_modules and resolve package lock issues.
+   * Refactor existing quiz code to be more modular before adding new features.
+Keanu
+* Current Focus: Lead on User Story 3 (ISS Level Integration).
+* Progress:
+   * Completed a working prototype of the ISS level.
+   * Demo: Presented a comprehensive walkthrough of the current level flow to the team, demonstrating user navigation and interaction.
+* Plan:
+   * Incorporate feedback received during the demo.
+   * Assist Joseph with the backend integration of the quiz data into the level UI.
+* Blockers: None.
+Kinish
+* Current Focus: User Story 2 (Frontend Visuals).
+* Progress:
+   * Pair programming with Akshar on the US 2 logic integration.
+   * Designing the CSS animations for UI transitions and feedback loops.
+* Plan:
+   * Polish the entry/exit animations for game elements.
+   * Ensure animations are performant and don't cause layout shifts.
+* Blockers: None.
+Anurag
+* Current Focus: User Story 4 (Quality Assurance & Testing).
+* Progress:
+   * Drafting comprehensive test cases for User Stories 1, 2, and 3.
+   * Setting up the testing framework (Jest/Cypress) environment.
+* Plan:
+   * Begin executing regression tests on completed stories.
+   * Goal: Ensure all major bugs are identified before the "Sprint Review."
+* Process Improvement:
+   * Suggestion: Increase the frequency of sync-ups/mini-standups to ensure frontend and backend integration is seamless before the deadline.

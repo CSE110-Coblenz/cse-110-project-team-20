@@ -1,0 +1,66 @@
+﻿Date: 11/24/2025
+Location: Online
+Attendees: Kinish, Emily, Joseph, Anurag, Keanu
+Minute taker: Emily
+Sprint 3
+Agenda
+- Sprint 3 planning 
+- backlog refinement
+- readjusting user story and talking about the new structure, game development
+
+
+Tasks + Role
+Anurag
+Role: Backend
+US: 4
+* Asteroid movement for minigame
+
+
+Emily
+Role: Frontend, testing for user story 4
+US: 4
+- Write unit tests to ensure quiz computes correct and incorrect answers and lets user retry 
+- add all meeting minutes to main branch
+- recenter text on load
+- consistency on ‘Enter your name’ with font and adjust placement to be more above
+- consistency with font throughout game
+
+
+Akshar
+Role: Frontend
+US: 4
+- work on cutscene ISS to moon
+- potentially moon to mars cutscence
+- push cutscene
+
+
+Keanu
+Role: Frontend
+US: 5
+-  polish up on 
+
+
+Kinish
+Role: Frontend
+US: 4
+- work on cutscene ISS to moon
+- potentially moon to mars cutscene
+- push cutscene
+
+
+Joseph
+Role: Frontend, back end and testing for user story 3
+US: 4
+- add hint onto password cracker game 
+        - Neil or just include in text Hint: PAY ATTENTION TO CAPS (something along the lines of that)
+
+
+Discussion
+- recenter text on load
+- consistency on ‘Enter your name’ with font and adjust placement to be more above
+- add hint onto password cracker game 
+        - Neil or just include in text Hint: LOOK AT CAPS
+- consistency with font throughout
+- change design -> bigger font on moon facts or 
+- condense codebase documentation and structure into README.md
+- DEMO video due December 5th
