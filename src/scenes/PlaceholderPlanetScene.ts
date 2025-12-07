@@ -164,6 +164,7 @@ export class PlaceholderPlanetScene implements Scene {
                     cutsceneId: `${this.planetName.toLowerCase()}-to-${planet.id}`,
                     sourcePlanet: this.planetName,
                     destinationPlanet: planet.name,
+                    targetScene: planet.sceneId,
                   });
                 }, 0);
               }
